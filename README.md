@@ -1,3 +1,15 @@
+都在 network-manager-go (network-manager-go) 工作树内：
+
+- 补丁：autonomous-p2p-go.patch (network-manager-go/debian/patches/autonomous-p2p-go.patch)
+  虽然文件名只有 GO，但包含 自主 GO 和凭据式独立 P2P Client 的修改。
+- 实现与使用说明：README.md (network-manager-go/contrib/crquickshare/README.md)
+  包含源码来源、D-Bus API、配置属性、权限、构建打包说明。Client 部分从 第 155 行 (network-manager-go/contrib/crquickshare/README.md:155) 开始。
+- 验证记录与限制：VALIDATION.md (network-manager-go/contrib/crquickshare/VALIDATION.md)
+- GO 配置示例：autonomous-go.nmconnection (network-manager-go/contrib/crquickshare/autonomous-go.nmconnection)
+- Debian 补丁应用顺序：series (network-manager-go/debian/patches/series)
+
+对应下游包版本为 1.58.1-1+crquickshare2。
+
 NetworkManager
 ==============
 
