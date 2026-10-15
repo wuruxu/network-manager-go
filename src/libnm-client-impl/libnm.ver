@@ -2135,3 +2135,16 @@ global:
 	nm_utils_wifi_freq_to_band;
 	nm_wifi_band_get_type;
 } libnm_1_56_0;
+
+# Downstream-only namespace: do not claim upstream ABI availability.
+libnm_crquickshare_go_1 {
+global:
+	nm_setting_wifi_p2p_get_client;
+	nm_setting_wifi_p2p_get_ssid;
+	nm_setting_wifi_p2p_get_psk;
+	nm_setting_wifi_p2p_get_psk_flags;
+	nm_setting_wifi_p2p_get_autonomous;
+	nm_setting_wifi_p2p_get_frequency;
+	nm_device_wifi_p2p_get_group_credentials;
+	nm_device_wifi_p2p_get_group_credentials_finish;
+} libnm_1_58_0;

@@ -1,0 +1,1258 @@
+Description: Add native Wi-Fi Direct GO and credential client support
+ Extend wifi-p2p profiles with autonomous group creation and frequency selection.
+ Manage groups through NetworkManager activation and shared IP configuration,
+ and expose credentials through an ACL- and Polkit-authorized device method.
+Origin: other, local crQuickShare development
+Forwarded: no
+Last-Update: 2026-10-15
+
+diff --git a/introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml b/introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml
+index 73b8cc0..84f52ec 100644
+--- a/introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml
++++ b/introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml
+@@ -24,6 +24,20 @@
+     -->
+     <property name="Peers" type="ao" access="read"/>
+ 
++    <!--
++        GetGroupCredentials:
++        @credentials: SSID (ay), passphrase (s), frequency in MHz (u), interface (s).
++
++        Read credentials of the currently activated autonomous group. Requires
++        network-control authorization and access to the applied connection.
++        Returns NotActive if the group changes while authorization is pending.
++        Credentials are not published in properties or signals. Read addresses
++        through the standard Device IP configuration objects. Downstream extension.
++    -->
++    <method name="GetGroupCredentials">
++      <arg name="credentials" type="a{sv}" direction="out"/>
++    </method>
++
+     <!--
+         StartFind:
+         @options: Options of find.
+diff --git a/src/core/devices/wifi/nm-device-iwd-p2p.c b/src/core/devices/wifi/nm-device-iwd-p2p.c
+index 184c8ec..7b9f909 100644
+--- a/src/core/devices/wifi/nm-device-iwd-p2p.c
++++ b/src/core/devices/wifi/nm-device-iwd-p2p.c
+@@ -142,6 +142,12 @@ check_connection_compatible(NMDevice     *device,
+     s_wifi_p2p =
+         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+ 
++    if (nm_setting_wifi_p2p_get_autonomous(s_wifi_p2p) || nm_setting_wifi_p2p_get_client(s_wifi_p2p)) {
++        nm_utils_error_set_literal(error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
++                                   "Autonomous P2P groups require the wpa_supplicant backend");
++        return FALSE;
++    }
++
+     /* Any of the existing values other than DISABLED is ok */
+     if (nm_setting_wifi_p2p_get_wps_method(s_wifi_p2p)
+         == NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED) {
+diff --git a/src/core/devices/wifi/nm-device-wifi-p2p.c b/src/core/devices/wifi/nm-device-wifi-p2p.c
+index 957a2df..2dc3b06 100644
+--- a/src/core/devices/wifi/nm-device-wifi-p2p.c
++++ b/src/core/devices/wifi/nm-device-wifi-p2p.c
+@@ -45,6 +45,9 @@ typedef struct {
+      */
+     NMSupplicantInterface *mgmt_iface;
+     NMSupplicantInterface *group_iface;
++    GCancellable *group_add_cancellable;
++    guint group_add_generation;
++    NMActRequestGetSecretsCallId *client_secrets_id;
+ 
+     CList peers_lst_head;
+ 
+@@ -150,6 +153,33 @@ _set_is_waiting_for_supplicant(NMDeviceWifiP2P *self, gboolean is_waiting)
+ 
+ /*****************************************************************************/
+ 
++static gboolean
++connection_is_autonomous(NMConnection *connection)
++{
++    NMSettingWifiP2P *setting;
++
++    if (!connection)
++        return FALSE;
++    setting = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
++    return setting && nm_setting_wifi_p2p_get_autonomous(setting);
++}
++
++static gboolean
++connection_is_client(NMConnection *connection)
++{
++    NMSettingWifiP2P *setting;
++    if (!connection)
++        return FALSE;
++    setting = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
++    return setting && nm_setting_wifi_p2p_get_client(setting);
++}
++
++static gboolean
++connection_has_credentials(NMConnection *connection)
++{
++    return connection_is_autonomous(connection) || connection_is_client(connection);
++}
++
+ static gboolean
+ check_connection_peer_joined(NMDeviceWifiP2P *device)
+ {
+@@ -207,7 +237,8 @@ update_disconnect_on_connection_peer_missing(NMDeviceWifiP2P *self)
+         return;
+     }
+ 
+-    if (check_connection_peer_joined(self)) {
++    if (connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))
++        || check_connection_peer_joined(self)) {
+         if (nm_clear_g_source(&priv->peer_missing_id))
+             _LOGD(LOGD_WIFI, "Peer requested in connection is joined, removing timeout");
+         return;
+@@ -270,6 +301,18 @@ complete_connection(NMDevice            *device,
+     s_wifi_p2p =
+         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+ 
++    if (connection_has_credentials(connection)) {
++        if (specific_object) {
++            g_set_error_literal(error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INVALID_CONNECTION,
++                                "A credential group cannot specify a peer object");
++            return FALSE;
++        }
++        nm_utils_complete_generic(nm_device_get_platform(device), connection,
++                                   NM_SETTING_WIFI_P2P_SETTING_NAME, existing_connections,
++                                   "Wi-Fi Direct Group", "Wi-Fi Direct Group", NULL, NULL);
++        return TRUE;
++    }
++
+     if (!specific_object) {
+         /* If not given a specific object, we need at minimum a peer address */
+         if (!s_wifi_p2p) {
+@@ -372,6 +415,8 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
+         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+     g_return_val_if_fail(s_wifi_p2p, NM_ACT_STAGE_RETURN_FAILURE);
+ 
++    if (nm_setting_wifi_p2p_get_autonomous(s_wifi_p2p) || nm_setting_wifi_p2p_get_client(s_wifi_p2p))
++        return NM_ACT_STAGE_RETURN_SUCCESS;
+     peer = nm_wifi_p2p_peers_find_first_compatible(&priv->peers_lst_head, connection, FALSE);
+     if (!peer) {
+         /* Set up a timeout on the find attempt and run a find for the same period of time */
+@@ -415,6 +460,49 @@ supplicant_connection_timeout_cb(gpointer user_data)
+     return G_SOURCE_REMOVE;
+ }
+ 
++static void
++autonomous_group_add_cb(GObject *source, GAsyncResult *result, gpointer user_data)
++{
++    gs_unref_object NMDeviceWifiP2P *self = NULL;
++    NMDeviceWifiP2PPrivate *priv;
++    gpointer generation;
++    gs_unref_variant GVariant *reply = NULL;
++    gs_free_error GError *error = NULL;
++
++    nm_utils_user_data_unpack(user_data, &self, &generation);
++    priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
++    if (G_IS_TASK(result)) {
++        if (g_task_propagate_boolean(G_TASK(result), &error))
++            reply = g_variant_ref_sink(g_variant_new("()"));
++    } else
++        reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
++    if (GPOINTER_TO_UINT(generation) != priv->group_add_generation
++        || nm_utils_error_is_cancelled(error))
++        return;
++    if (!reply && nm_device_get_state(NM_DEVICE(self)) == NM_DEVICE_STATE_CONFIG) {
++        nm_clear_g_cancellable(&priv->group_add_cancellable);
++        _LOGW(LOGD_WIFI, "P2P credential group activation failed: %s", error->message);
++        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
++                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
++    }
++}
++
++static void
++client_secrets_cb(NMActRequest *req, NMActRequestGetSecretsCallId *call_id,
++                  NMSettingsConnection *connection, GError *error, gpointer user_data)
++{
++    NMDeviceWifiP2P *self = user_data;
++    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
++    priv->client_secrets_id = NULL;
++    if (nm_utils_error_is_cancelled(error))
++        return;
++    if (error) {
++        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_NO_SECRETS);
++        return;
++    }
++    nm_device_activate_schedule_stage1_device_prepare(NM_DEVICE(self), FALSE);
++}
++
+ static NMActStageReturn
+ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
+ {
+@@ -438,6 +526,83 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
+     nm_assert(
+         NM_IS_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P)));
+ 
++    if (connection_is_client(connection)) {
++        const char *psk;
++        gs_free_error GError *secret_error = NULL;
++        s_wifi_p2p = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
++        if (priv->group_add_cancellable || priv->group_iface)
++            return NM_ACT_STAGE_RETURN_POSTPONE;
++        psk = nm_setting_wifi_p2p_get_psk(s_wifi_p2p);
++        if (!psk) {
++            if (!priv->client_secrets_id) {
++                nm_device_state_changed(device, NM_DEVICE_STATE_NEED_AUTH, NM_DEVICE_STATE_REASON_NONE);
++                priv->client_secrets_id = nm_act_request_get_secrets(nm_device_get_act_request(device),
++                    TRUE, NM_SETTING_WIFI_P2P_SETTING_NAME,
++                    NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION, NULL, client_secrets_cb, self);
++            }
++            return NM_ACT_STAGE_RETURN_POSTPONE;
++        }
++        if (!nm_setting_verify_secrets(NM_SETTING(s_wifi_p2p), connection, &secret_error)
++            || !nm_supplicant_interface_p2p_can_create_group(priv->mgmt_iface)) {
++            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
++            return NM_ACT_STAGE_RETURN_FAILURE;
++        }
++        priv->group_add_generation++;
++        priv->group_add_cancellable = g_cancellable_new();
++        priv->sup_timeout_id = g_timeout_add_seconds(45, supplicant_connection_timeout_cb, self);
++        nm_supplicant_interface_p2p_join_credentials(priv->mgmt_iface,
++            nm_setting_wifi_p2p_get_ssid(s_wifi_p2p), psk,
++            nm_setting_wifi_p2p_get_frequency(s_wifi_p2p), priv->group_add_cancellable,
++            autonomous_group_add_cb, nm_utils_user_data_pack(g_object_ref(self),
++                GUINT_TO_POINTER(priv->group_add_generation)));
++        return NM_ACT_STAGE_RETURN_POSTPONE;
++    }
++
++    if (connection_is_autonomous(connection)) {
++        guint32 frequency;
++        guint32 station_frequency = 0;
++        int ifindex = 0;
++
++        /* Keep the request marker until deactivation, including after GroupAdd returns. */
++        if (priv->group_add_cancellable || priv->group_iface)
++            return NM_ACT_STAGE_RETURN_POSTPONE;
++
++        ifindex = nm_supplicant_interface_get_ifindex(priv->mgmt_iface);
++
++        if (!nm_supplicant_interface_p2p_can_create_group(priv->mgmt_iface)) {
++            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
++            return NM_ACT_STAGE_RETURN_FAILURE;
++        }
++        s_wifi_p2p = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
++        frequency = nm_setting_wifi_p2p_get_frequency(s_wifi_p2p);
++        if (nm_supplicant_interface_get_state(priv->mgmt_iface)
++            == NM_SUPPLICANT_INTERFACE_STATE_COMPLETED)
++            station_frequency = nm_platform_wifi_get_frequency(nm_device_get_platform(device),
++                                                                ifindex);
++        if (nm_supplicant_interface_get_state(priv->mgmt_iface)
++                == NM_SUPPLICANT_INTERFACE_STATE_COMPLETED && !station_frequency) {
++            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
++            return NM_ACT_STAGE_RETURN_FAILURE;
++        }
++        if (frequency && station_frequency && frequency != station_frequency) {
++            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
++            return NM_ACT_STAGE_RETURN_FAILURE;
++        }
++        if (!frequency)
++            frequency = station_frequency;
++        if (!priv->group_add_cancellable && !priv->group_iface) {
++            priv->group_add_generation++;
++            priv->group_add_cancellable = g_cancellable_new();
++            priv->sup_timeout_id = g_timeout_add_seconds(45, supplicant_connection_timeout_cb, self);
++            nm_supplicant_interface_p2p_group_add(priv->mgmt_iface, frequency,
++                                                 priv->group_add_cancellable,
++                                                 autonomous_group_add_cb,
++                                                 nm_utils_user_data_pack(g_object_ref(self),
++                                                     GUINT_TO_POINTER(priv->group_add_generation)));
++        }
++        return NM_ACT_STAGE_RETURN_POSTPONE;
++    }
++
+     /* The prepare stage ensures that the peer has been found */
+     peer = nm_wifi_p2p_peers_find_first_compatible(&priv->peers_lst_head, connection, FALSE);
+     if (!peer) {
+@@ -617,6 +782,10 @@ deactivate(NMDevice *device)
+     nm_clear_g_source(&priv->find_peer_timeout_id);
+     nm_clear_g_source(&priv->sup_timeout_id);
+     nm_clear_g_source(&priv->peer_missing_id);
++    if (priv->client_secrets_id)
++        nm_act_request_cancel_secrets(NULL, priv->client_secrets_id);
++    priv->group_add_generation++;
++    nm_clear_g_cancellable(&priv->group_add_cancellable);
+ 
+     if (priv->mgmt_iface)
+         nm_supplicant_interface_p2p_cancel_connect(priv->mgmt_iface);
+@@ -753,6 +922,14 @@ check_group_iface_ready(NMDeviceWifiP2P *self)
+     if (!nm_supplicant_interface_get_p2p_group_joined(priv->group_iface))
+         return;
+ 
++    if ((connection_is_autonomous(nm_device_get_applied_connection(NM_DEVICE(self)))
++         && !nm_supplicant_interface_get_p2p_group_owner(priv->group_iface))
++        || (connection_is_client(nm_device_get_applied_connection(NM_DEVICE(self)))
++            && nm_supplicant_interface_get_p2p_group_owner(priv->group_iface))) {
++        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
++                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
++        return;
++    }
+     nm_clear_g_source(&priv->sup_timeout_id);
+     update_disconnect_on_connection_peer_missing(self);
+ 
+@@ -842,7 +1019,9 @@ supplicant_iface_group_started_cb(NMSupplicantInterface *iface,
+ 
+     g_return_if_fail(self);
+ 
+-    if (!nm_device_is_activating(NM_DEVICE(self))) {
++    if (!nm_device_is_activating(NM_DEVICE(self))
++        || (connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))
++            && nm_device_get_state(NM_DEVICE(self)) != NM_DEVICE_STATE_CONFIG)) {
+         _LOGW(LOGD_DEVICE | LOGD_WIFI,
+               "P2P: WPA supplicant notified a group start but we are not trying to connect! "
+               "Ignoring the event.");
+@@ -850,6 +1029,15 @@ supplicant_iface_group_started_cb(NMSupplicantInterface *iface,
+     }
+ 
+     priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
++    if (group_iface == priv->mgmt_iface
++        && connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))) {
++        _LOGW(LOGD_WIFI, "P2P group requires a separate interface");
++        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
++                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
++        return;
++    }
++    if (priv->group_iface)
++        return;
+ 
+     supplicant_group_interface_release(self);
+ 
+@@ -902,6 +1090,10 @@ supplicant_interfaces_release(NMDeviceWifiP2P *self, gboolean set_is_waiting)
+ 
+     nm_clear_g_source(&priv->peer_dump_id);
+ 
++    if (priv->client_secrets_id)
++        nm_act_request_cancel_secrets(NULL, priv->client_secrets_id);
++    priv->group_add_generation++;
++    nm_clear_g_cancellable(&priv->group_add_cancellable);
+     remove_all_peers(self);
+ 
+     if (priv->mgmt_iface) {
+@@ -1121,6 +1313,58 @@ impl_device_wifi_p2p_stop_find(NMDBusObject                      *obj,
+                            NULL);
+ }
+ 
++static void
++p2p_get_group_credentials_auth_cb(NMDevice *device,
++                                  GDBusMethodInvocation *invocation,
++                                  NMAuthSubject *subject,
++                                  GError *error,
++                                  gpointer user_data)
++{
++    gs_unref_object NMSupplicantInterface *expected_group = user_data;
++    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
++    gs_unref_variant GVariant *credentials = NULL;
++
++    if (error) {
++        g_dbus_method_invocation_return_gerror(invocation, error);
++        return;
++    }
++    if (nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED
++        && expected_group && priv->group_iface == expected_group
++        && connection_is_autonomous(nm_device_get_applied_connection(device)))
++        credentials = nm_supplicant_interface_p2p_group_credentials(expected_group);
++    if (!credentials) {
++        g_dbus_method_invocation_return_error_literal(invocation, NM_DEVICE_ERROR,
++            NM_DEVICE_ERROR_NOT_ACTIVE, "No ready autonomous group for this activation");
++        return;
++    }
++    g_dbus_method_invocation_return_value(invocation,
++                                         g_variant_new("(@a{sv})", g_steal_pointer(&credentials)));
++}
++
++static void
++impl_device_wifi_p2p_get_group_credentials(NMDBusObject *obj,
++                                          const NMDBusInterfaceInfoExtended *interface_info,
++                                          const NMDBusMethodInfoExtended *method_info,
++                                          GDBusConnection *connection,
++                                          const char *sender,
++                                          GDBusMethodInvocation *invocation,
++                                          GVariant *parameters)
++{
++    NMDevice *device = NM_DEVICE(obj);
++    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
++    NMConnection *applied = nm_device_get_applied_connection(device);
++
++    if (!connection_is_autonomous(applied) || !priv->group_iface
++        || nm_device_get_state(device) != NM_DEVICE_STATE_ACTIVATED) {
++        g_dbus_method_invocation_return_error_literal(invocation, NM_DEVICE_ERROR,
++            NM_DEVICE_ERROR_NOT_ACTIVE, "No active autonomous group");
++        return;
++    }
++    nm_device_auth_request(device, invocation, applied, NM_AUTH_PERMISSION_NETWORK_CONTROL,
++                           TRUE, NULL, p2p_get_group_credentials_auth_cb,
++                           g_object_ref(priv->group_iface));
++}
++
+ static gboolean
+ get_enabled(NMDevice *device)
+ {
+@@ -1234,6 +1478,12 @@ static const NMDBusInterfaceInfoExtended interface_info_device_wifi_p2p = {
+     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
+         NM_DBUS_INTERFACE_DEVICE_WIFI_P2P,
+         .methods = NM_DEFINE_GDBUS_METHOD_INFOS(
++            NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(
++                NM_DEFINE_GDBUS_METHOD_INFO_INIT(
++                    "GetGroupCredentials",
++                    .out_args = NM_DEFINE_GDBUS_ARG_INFOS(
++                        NM_DEFINE_GDBUS_ARG_INFO("credentials", "a{sv}"), ), ),
++                .handle = impl_device_wifi_p2p_get_group_credentials, ),
+             NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(
+                 NM_DEFINE_GDBUS_METHOD_INFO_INIT(
+                     "StartFind",
+diff --git a/src/core/supplicant/nm-supplicant-interface.c b/src/core/supplicant/nm-supplicant-interface.c
+index 4476c70..36d5ff8 100644
+--- a/src/core/supplicant/nm-supplicant-interface.c
++++ b/src/core/supplicant/nm-supplicant-interface.c
+@@ -15,6 +15,7 @@
+ #include "libnm-core-intern/nm-core-internal.h"
+ #include "libnm-glib-aux/nm-c-list.h"
+ #include "libnm-glib-aux/nm-ref-string.h"
++#include "libnm-glib-aux/nm-secret-utils.h"
+ #include "libnm-glib-aux/nm-dbus-aux.h"
+ #include "libnm-std-aux/nm-dbus-compat.h"
+ #include "nm-supplicant-config.h"
+@@ -98,6 +99,11 @@ typedef struct _NMSupplicantInterfacePrivate {
+     GCancellable *main_cancellable;
+ 
+     NMRefString *p2p_group_path;
++    GBytes *p2p_group_ssid;
++    char *p2p_group_passphrase;
++    guint16 p2p_group_frequency;
++    gboolean p2p_config_known;
++    gboolean p2p_no_group_iface;
+ 
+     GCancellable *p2p_group_properties_cancellable;
+ 
+@@ -1164,6 +1170,8 @@ set_state_down(NMSupplicantInterface *self,
+     nm_clear_g_cancellable(&priv->p2p_group_properties_cancellable);
+ 
+     nm_clear_pointer(&priv->p2p_group_path, nm_ref_string_unref);
++    nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
++    nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
+ 
+     _remove_network(self);
+ 
+@@ -1518,10 +1526,31 @@ _p2p_group_properties_changed(NMSupplicantInterface *self, GVariant *properties)
+     NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
+     const char                   *s;
+ 
+-    if (!properties)
++    if (!properties) {
+         priv->p2p_group_owner_property = FALSE;
+-    else if (g_variant_lookup(properties, "Role", "&s", &s))
+-        priv->p2p_group_owner_property = nm_streq(s, "GO");
++        nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
++        nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
++        priv->p2p_group_frequency = 0;
++    } else {
++        gs_unref_variant GVariant *ssid = NULL;
++
++        if (g_variant_lookup(properties, "Role", "&s", &s))
++            priv->p2p_group_owner_property = nm_streq(s, "GO");
++        ssid = g_variant_lookup_value(properties, "SSID", G_VARIANT_TYPE("ay"));
++        if (ssid) {
++            gsize len;
++            const void *data = g_variant_get_fixed_array(ssid, &len, 1);
++            nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
++            if (len > 0 && len <= 32)
++                priv->p2p_group_ssid = g_bytes_new(data, len);
++        }
++        if (g_variant_lookup(properties, "Passphrase", "&s", &s)) {
++            nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
++            if (strlen(s) >= 8 && strlen(s) <= 63)
++                priv->p2p_group_passphrase = g_strdup(s);
++        }
++        g_variant_lookup(properties, "Frequency", "q", &priv->p2p_group_frequency);
++    }
+ 
+     _notify_maybe_p2p_group(self);
+ }
+@@ -1595,6 +1624,10 @@ _p2p_group_set_path(NMSupplicantInterface *self, const char *path)
+ 
+     nm_ref_string_unref(priv->p2p_group_path);
+     priv->p2p_group_path = g_steal_pointer(&group_path);
++    priv->p2p_group_owner_property = FALSE;
++    nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
++    nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
++    priv->p2p_group_frequency = 0;
+ 
+     if (priv->p2p_group_path) {
+         priv->p2p_group_properties_cancellable = g_cancellable_new();
+@@ -2066,6 +2099,15 @@ _properties_changed_p2p_device(NMSupplicantInterface *self, GVariant *properties
+ 
+     nm_assert(!properties || g_variant_is_of_type(properties, G_VARIANT_TYPE("a{sv}")));
+ 
++    if (properties) {
++        gs_unref_variant GVariant *config =
++            g_variant_lookup_value(properties, "P2PDeviceConfig", G_VARIANT_TYPE_VARDICT);
++        if (config) {
++            priv->p2p_config_known = TRUE;
++            g_variant_lookup(config, "NoGroupIface", "b", &priv->p2p_no_group_iface);
++        }
++    }
++
+     if (nm_g_variant_lookup(properties, "Peers", "^a&o", &v_strv)) {
+         NMSupplicantPeerInfo *peer_info;
+         NMSupplicantPeerInfo *peer_info_safe;
+@@ -2901,6 +2943,12 @@ nm_supplicant_interface_get_object_path(NMSupplicantInterface *self)
+     return NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self)->object_path;
+ }
+ 
++int
++nm_supplicant_interface_get_ifindex(NMSupplicantInterface *self)
++{
++    return NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self)->ifindex;
++}
++
+ const char *
+ nm_supplicant_interface_get_ifname(NMSupplicantInterface *self)
+ {
+@@ -2984,6 +3032,171 @@ nm_supplicant_interface_p2p_connect(NMSupplicantInterface *self,
+                                  "p2p-connect");
+ }
+ 
++gboolean
++nm_supplicant_interface_p2p_can_create_group(NMSupplicantInterface *self)
++{
++    NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
++
++    return priv->p2p_config_known && !priv->p2p_no_group_iface && !priv->p2p_group_path;
++}
++
++/* The caller owns the cancellable and handles errors in its activation state. */
++void
++nm_supplicant_interface_p2p_group_add(NMSupplicantInterface *self,
++                                     guint32 frequency,
++                                     GCancellable *cancellable,
++                                     GAsyncReadyCallback callback,
++                                     gpointer user_data)
++{
++    GVariantBuilder builder;
++
++    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
++    g_variant_builder_add(&builder, "{sv}", "persistent", g_variant_new_boolean(FALSE));
++    if (frequency)
++        g_variant_builder_add(&builder, "{sv}", "frequency", g_variant_new_int32(frequency));
++    _dbus_connection_call(self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
++                          "GroupAdd", g_variant_new("(a{sv})", &builder),
++                          G_VARIANT_TYPE("()"), G_DBUS_CALL_FLAGS_NONE,
++                          DBUS_TIMEOUT_MSEC, cancellable, callback, user_data);
++}
++
++/* AddPersistentGroup is a session-scoped credential carrier. Never SaveConfig.
++ * Calls are deliberately not cancelled on the bus: we must obtain the object
++ * path and remove it even if activation was cancelled while the reply was in flight. */
++typedef struct {
++    GTask *task;
++    NMSupplicantInterface *self;
++    guint32 frequency;
++    char *path;
++    GError *error;
++} P2PClientJoin;
++
++static void
++p2p_client_remove_done(GObject *source, GAsyncResult *result, gpointer user_data)
++{
++    P2PClientJoin *join = user_data;
++    gs_unref_variant GVariant *reply = NULL;
++    gs_free_error GError *error = NULL;
++    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
++    if (!reply && !join->error)
++        join->error = g_steal_pointer(&error);
++    /* Device deactivation already queued Cancel after GroupAdd on this bus.
++     * Never cancel here: a newer activation may have started meanwhile. */
++    if (g_task_return_error_if_cancelled(join->task)) {
++    }
++    else if (join->error)
++        g_task_return_error(join->task, g_steal_pointer(&join->error));
++    else
++        g_task_return_boolean(join->task, TRUE);
++    g_clear_error(&join->error);
++    g_object_unref(join->task);
++    g_object_unref(join->self);
++    g_free(join->path);
++    g_free(join);
++}
++
++static void
++p2p_client_remove(P2PClientJoin *join)
++{
++    _dbus_connection_call(join->self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
++        "RemovePersistentGroup", g_variant_new("(o)", join->path), G_VARIANT_TYPE("()"),
++        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_remove_done, join);
++}
++
++static void
++p2p_client_group_done(GObject *source, GAsyncResult *result, gpointer user_data)
++{
++    P2PClientJoin *join = user_data;
++    gs_unref_variant GVariant *reply = NULL;
++    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &join->error);
++    p2p_client_remove(join);
++}
++
++static void
++p2p_client_add_done(GObject *source, GAsyncResult *result, gpointer user_data)
++{
++    P2PClientJoin *join = user_data;
++    gs_unref_variant GVariant *reply = NULL;
++    GVariantBuilder builder;
++    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &join->error);
++    if (!reply) {
++        g_task_return_error(join->task, g_steal_pointer(&join->error));
++        g_object_unref(join->task);
++        g_object_unref(join->self);
++        g_free(join);
++        return;
++    }
++    g_variant_get(reply, "(o)", &join->path);
++    if (g_cancellable_is_cancelled(g_task_get_cancellable(join->task))) {
++        p2p_client_remove(join);
++        return;
++    }
++    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
++    g_variant_builder_add(&builder, "{sv}", "persistent_group_object", g_variant_new_object_path(join->path));
++    if (join->frequency)
++        g_variant_builder_add(&builder, "{sv}", "frequency", g_variant_new_int32(join->frequency));
++    _dbus_connection_call(join->self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
++        "GroupAdd", g_variant_new("(a{sv})", &builder), G_VARIANT_TYPE("()"),
++        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_group_done, join);
++}
++
++void
++nm_supplicant_interface_p2p_join_credentials(NMSupplicantInterface *self,
++    GBytes *ssid, const char *psk, guint32 frequency, GCancellable *cancellable,
++    GAsyncReadyCallback callback, gpointer user_data)
++{
++    P2PClientJoin *join = g_new0(P2PClientJoin, 1);
++    GVariantBuilder builder;
++    gsize len;
++    const guint8 *data = g_bytes_get_data(ssid, &len);
++
++    join->self = g_object_ref(self);
++    join->task = g_task_new(self, cancellable, callback, user_data);
++    join->frequency = frequency;
++    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
++    g_variant_builder_add(&builder, "{sv}", "ssid",
++        g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, data, len, 1));
++    g_variant_builder_add(&builder, "{sv}", "mode", g_variant_new_int32(0));
++    g_variant_builder_add(&builder, "{sv}", "key_mgmt", g_variant_new_string("WPA-PSK"));
++    if (strlen(psk) == 64) {
++        guint8 key[32];
++        guint i;
++        for (i = 0; i < 32; i++)
++            key[i] = (g_ascii_xdigit_value(psk[2 * i]) << 4) | g_ascii_xdigit_value(psk[2 * i + 1]);
++        g_variant_builder_add(&builder, "{sv}", "psk",
++            g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, key, sizeof(key), 1));
++        nm_explicit_bzero(key, sizeof(key));
++    } else
++        g_variant_builder_add(&builder, "{sv}", "psk", g_variant_new_string(psk));
++    _dbus_connection_call(self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
++        "AddPersistentGroup", g_variant_new("(a{sv})", &builder), G_VARIANT_TYPE("(o)"),
++        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_add_done, join);
++}
++
++/* Credentials are intentionally not exported as GObject/D-Bus properties. */
++GVariant *
++nm_supplicant_interface_p2p_group_credentials(NMSupplicantInterface *self)
++{
++    NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
++    GVariantBuilder builder;
++    gsize len;
++    const void *ssid;
++
++    if (!priv->p2p_group_owner_cached || !priv->p2p_group_ssid
++        || !priv->p2p_group_passphrase || !priv->p2p_group_frequency)
++        return NULL;
++    ssid = g_bytes_get_data(priv->p2p_group_ssid, &len);
++    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
++    g_variant_builder_add(&builder, "{sv}", "ssid",
++                          g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, ssid, len, 1));
++    g_variant_builder_add(&builder, "{sv}", "passphrase",
++                          g_variant_new_string(priv->p2p_group_passphrase));
++    g_variant_builder_add(&builder, "{sv}", "frequency",
++                          g_variant_new_uint32(priv->p2p_group_frequency));
++    g_variant_builder_add(&builder, "{sv}", "interface", g_variant_new_string(priv->ifname));
++    return g_variant_ref_sink(g_variant_builder_end(&builder));
++}
++
+ void
+ nm_supplicant_interface_p2p_cancel_connect(NMSupplicantInterface *self)
+ {
+diff --git a/src/core/supplicant/nm-supplicant-interface.h b/src/core/supplicant/nm-supplicant-interface.h
+index e77f5a4..5e3909f 100644
+--- a/src/core/supplicant/nm-supplicant-interface.h
++++ b/src/core/supplicant/nm-supplicant-interface.h
+@@ -154,6 +154,8 @@ NMRefString *nm_supplicant_interface_get_current_bss(NMSupplicantInterface *self
+ 
+ gint64 nm_supplicant_interface_get_last_scan(NMSupplicantInterface *self);
+ 
++int nm_supplicant_interface_get_ifindex(NMSupplicantInterface *self);
++
+ const char *nm_supplicant_interface_get_ifname(NMSupplicantInterface *self);
+ 
+ guint nm_supplicant_interface_get_max_scan_ssids(NMSupplicantInterface *self);
+@@ -173,6 +175,14 @@ gboolean nm_supplicant_interface_get_p2p_assigned_addr(NMSupplicantInterface *se
+ void nm_supplicant_interface_p2p_start_find(NMSupplicantInterface *self, guint timeout);
+ void nm_supplicant_interface_p2p_stop_find(NMSupplicantInterface *self);
+ 
++gboolean nm_supplicant_interface_p2p_can_create_group(NMSupplicantInterface *self);
++void nm_supplicant_interface_p2p_group_add(NMSupplicantInterface *self,
++                                         guint32 frequency,
++                                         GCancellable *cancellable,
++                                         GAsyncReadyCallback callback,
++                                         gpointer user_data);
++GVariant *nm_supplicant_interface_p2p_group_credentials(NMSupplicantInterface *self);
++
+ void nm_supplicant_interface_p2p_connect(NMSupplicantInterface *self,
+                                          const char            *peer,
+                                          const char            *wps_method,
+@@ -198,4 +208,8 @@ NMSupplicantAuthState nm_supplicant_interface_get_auth_state(NMSupplicantInterfa
+ 
+ void nm_supplicant_interface_set_bridge(NMSupplicantInterface *self, const char *bridge);
+ 
++void nm_supplicant_interface_p2p_join_credentials(NMSupplicantInterface *self,
++    GBytes *ssid, const char *psk, guint32 frequency, GCancellable *cancellable,
++    GAsyncReadyCallback callback, gpointer user_data);
++
+ #endif /* __NM_SUPPLICANT_INTERFACE_H__ */
+diff --git a/src/libnm-client-impl/libnm.ver b/src/libnm-client-impl/libnm.ver
+index 62d486f..f74bb12 100644
+--- a/src/libnm-client-impl/libnm.ver
++++ b/src/libnm-client-impl/libnm.ver
+@@ -2135,3 +2135,16 @@ global:
+ 	nm_utils_wifi_freq_to_band;
+ 	nm_wifi_band_get_type;
+ } libnm_1_56_0;
++
++# Downstream-only namespace: do not claim upstream ABI availability.
++libnm_crquickshare_go_1 {
++global:
++	nm_setting_wifi_p2p_get_client;
++	nm_setting_wifi_p2p_get_ssid;
++	nm_setting_wifi_p2p_get_psk;
++	nm_setting_wifi_p2p_get_psk_flags;
++	nm_setting_wifi_p2p_get_autonomous;
++	nm_setting_wifi_p2p_get_frequency;
++	nm_device_wifi_p2p_get_group_credentials;
++	nm_device_wifi_p2p_get_group_credentials_finish;
++} libnm_1_58_0;
+diff --git a/src/libnm-client-impl/nm-device-wifi-p2p.c b/src/libnm-client-impl/nm-device-wifi-p2p.c
+index 535482a..c6d4242 100644
+--- a/src/libnm-client-impl/nm-device-wifi-p2p.c
++++ b/src/libnm-client-impl/nm-device-wifi-p2p.c
+@@ -282,6 +282,55 @@ get_type_description(NMDevice *device)
+     return "wifi-p2p";
+ }
+ 
++/**
++ * nm_device_wifi_p2p_get_group_credentials:
++ * @device: a #NMDeviceWifiP2P
++ * @cancellable: (nullable): a #GCancellable
++ * @callback: (scope async): completion callback
++ * @user_data: callback data
++ *
++ * Read credentials of an active autonomous GO using network-control authorization.
++ * Downstream extension. Do not log the returned passphrase.
++ */
++void
++nm_device_wifi_p2p_get_group_credentials(NMDeviceWifiP2P *device,
++                                        GCancellable *cancellable,
++                                        GAsyncReadyCallback callback,
++                                        gpointer user_data)
++{
++    g_return_if_fail(NM_IS_DEVICE_WIFI_P2P(device));
++    _nm_client_dbus_call(_nm_object_get_client(device), device,
++                         nm_device_wifi_p2p_get_group_credentials, cancellable,
++                         callback, user_data, _nm_object_get_path(device),
++                         NM_DBUS_INTERFACE_DEVICE_WIFI_P2P, "GetGroupCredentials",
++                         NULL, G_VARIANT_TYPE("(a{sv})"), G_DBUS_CALL_FLAGS_NONE,
++                         NM_DBUS_DEFAULT_TIMEOUT_MSEC,
++                         nm_dbus_connection_call_finish_variant_strip_dbus_error_cb);
++}
++
++/**
++ * nm_device_wifi_p2p_get_group_credentials_finish:
++ * @device: a #NMDeviceWifiP2P
++ * @result: asynchronous result
++ * @error: return location for an error
++ *
++ * Returns: (transfer full): a credential dictionary (a{sv}), or NULL on error.
++ * Downstream extension. Caller must not publish or log its passphrase.
++ */
++GVariant *
++nm_device_wifi_p2p_get_group_credentials_finish(NMDeviceWifiP2P *device,
++                                               GAsyncResult *result,
++                                               GError **error)
++{
++    gs_unref_variant GVariant *reply = NULL;
++
++    g_return_val_if_fail(NM_IS_DEVICE_WIFI_P2P(device), NULL);
++    g_return_val_if_fail(nm_g_task_is_valid(result, device,
++                         nm_device_wifi_p2p_get_group_credentials), NULL);
++    reply = g_task_propagate_pointer(G_TASK(result), error);
++    return reply ? g_variant_get_child_value(reply, 0) : NULL;
++}
++
+ /*****************************************************************************/
+ 
+ static void
+diff --git a/src/libnm-client-public/nm-device-wifi-p2p.h b/src/libnm-client-public/nm-device-wifi-p2p.h
+index 44b59cc..99197b2 100644
+--- a/src/libnm-client-public/nm-device-wifi-p2p.h
++++ b/src/libnm-client-public/nm-device-wifi-p2p.h
+@@ -69,6 +69,15 @@ NM_AVAILABLE_IN_1_16
+ gboolean
+ nm_device_wifi_p2p_stop_find_finish(NMDeviceWifiP2P *device, GAsyncResult *result, GError **error);
+ 
++/* Downstream autonomous GO extension. */
++void nm_device_wifi_p2p_get_group_credentials(NMDeviceWifiP2P *device,
++                                             GCancellable *cancellable,
++                                             GAsyncReadyCallback callback,
++                                             gpointer user_data);
++GVariant *nm_device_wifi_p2p_get_group_credentials_finish(NMDeviceWifiP2P *device,
++                                                        GAsyncResult *result,
++                                                        GError **error);
++
+ G_END_DECLS
+ 
+ #endif /* __NM_DEVICE_WIFI_P2P_H__ */
+diff --git a/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in b/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in
+index 7308db4..ab214b6 100644
+--- a/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in
++++ b/src/libnm-core-impl/gen-metadata-nm-settings-libnm-core.xml.in
+@@ -2747,10 +2747,36 @@
+     <setting name="wifi-p2p"
+              gtype="NMSettingWifiP2P"
+              >
++        <property name="autonomous"
++                  dbus-type="b"
++                  gprop-type="gboolean"
++                  />
++        <property name="client"
++                  dbus-type="b"
++                  gprop-type="gboolean"
++                  />
++        <property name="frequency"
++                  dbus-type="u"
++                  gprop-type="guint"
++                  />
+         <property name="peer"
+                   dbus-type="s"
+                   gprop-type="gchararray"
+                   />
++        <property name="psk"
++                  is-secret="1"
++                  dbus-type="s"
++                  gprop-type="gchararray"
++                  />
++        <property name="psk-flags"
++                  is-secret-flags="1"
++                  dbus-type="u"
++                  gprop-type="NMSettingSecretFlags"
++                  />
++        <property name="ssid"
++                  dbus-type="ay"
++                  gprop-type="GBytes"
++                  />
+         <property name="wfd-ies"
+                   dbus-type="ay"
+                   gprop-type="GBytes"
+diff --git a/src/libnm-core-impl/nm-setting-wifi-p2p.c b/src/libnm-core-impl/nm-setting-wifi-p2p.c
+index 31dbea5..26b5e2f 100644
+--- a/src/libnm-core-impl/nm-setting-wifi-p2p.c
++++ b/src/libnm-core-impl/nm-setting-wifi-p2p.c
+@@ -32,12 +32,18 @@
+ 
+ /*****************************************************************************/
+ 
+-NM_GOBJECT_PROPERTIES_DEFINE_BASE(PROP_PEER, PROP_WPS_METHOD, PROP_WFD_IES, );
++NM_GOBJECT_PROPERTIES_DEFINE_BASE(PROP_PEER, PROP_WPS_METHOD, PROP_WFD_IES, PROP_AUTONOMOUS, PROP_FREQUENCY, PROP_CLIENT, PROP_SSID, PROP_PSK, PROP_PSK_FLAGS, );
+ 
+ typedef struct {
+     char   *peer;
+     GBytes *wfd_ies;
+     guint32 wps_method;
++    bool autonomous;
++    guint32 frequency;
++    bool client;
++    GBytes *ssid;
++    char *psk;
++    NMSettingSecretFlags psk_flags;
+ } NMSettingWifiP2PPrivate;
+ 
+ struct _NMSettingWifiP2P {
+@@ -105,14 +111,72 @@ nm_setting_wifi_p2p_get_wfd_ies(NMSettingWifiP2P *setting)
+     return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->wfd_ies;
+ }
+ 
++/**
++ * nm_setting_wifi_p2p_get_autonomous:
++ * @setting: the #NMSettingWifiP2P
++ *
++ * Returns: whether to create an autonomous group owner without a peer
++ *
++ * Downstream extension to NetworkManager 1.58.1.
++ **/
++gboolean
++nm_setting_wifi_p2p_get_autonomous(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), FALSE);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->autonomous;
++}
++
++/**
++ * nm_setting_wifi_p2p_get_frequency:
++ * @setting: the #NMSettingWifiP2P
++ *
++ * Returns: the requested GO frequency in MHz, or zero for automatic selection
++ *
++ * Downstream extension to NetworkManager 1.58.1.
++ **/
++guint32
++nm_setting_wifi_p2p_get_frequency(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), 0);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->frequency;
++}
++
+ /*****************************************************************************/
+ 
++gboolean
++nm_setting_wifi_p2p_get_client(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), FALSE);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->client;
++}
++
++GBytes *
++nm_setting_wifi_p2p_get_ssid(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), NULL);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->ssid;
++}
++
++const char *
++nm_setting_wifi_p2p_get_psk(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), NULL);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->psk;
++}
++
++NMSettingSecretFlags
++nm_setting_wifi_p2p_get_psk_flags(NMSettingWifiP2P *setting)
++{
++    g_return_val_if_fail(NM_IS_SETTING_WIFI_P2P(setting), NM_SETTING_SECRET_FLAG_NONE);
++    return NM_SETTING_WIFI_P2P_GET_PRIVATE(setting)->psk_flags;
++}
++
+ static gboolean
+ verify(NMSetting *setting, NMConnection *connection, GError **error)
+ {
+     NMSettingWifiP2PPrivate *priv = NM_SETTING_WIFI_P2P_GET_PRIVATE(setting);
+ 
+-    if (!priv->peer) {
++    if (!priv->autonomous && !priv->client && !priv->peer) {
+         g_set_error_literal(error,
+                             NM_CONNECTION_ERROR,
+                             NM_CONNECTION_ERROR_MISSING_PROPERTY,
+@@ -124,7 +188,8 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
+         return FALSE;
+     }
+ 
+-    if (!nm_utils_hwaddr_valid(priv->peer, ETH_ALEN)) {
++    if (((priv->autonomous || priv->client) && priv->peer)
++        || (priv->peer && !nm_utils_hwaddr_valid(priv->peer, ETH_ALEN))) {
+         g_set_error_literal(error,
+                             NM_CONNECTION_ERROR,
+                             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+@@ -136,6 +201,26 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
+         return FALSE;
+     }
+ 
++    if ((!priv->autonomous && !priv->client && priv->frequency)
++        || (priv->frequency && !nm_utils_wifi_freq_to_channel(priv->frequency))) {
++        g_set_error_literal(error, NM_CONNECTION_ERROR,
++                            NM_CONNECTION_ERROR_INVALID_PROPERTY, _("property is invalid"));
++        g_prefix_error(error, "%s.%s: ", NM_SETTING_WIFI_P2P_SETTING_NAME,
++                       NM_SETTING_WIFI_P2P_FREQUENCY);
++        return FALSE;
++    }
++
++    if ((priv->client && (priv->psk_flags & NM_SETTING_SECRET_FLAG_NOT_REQUIRED))
++        || (priv->client && (priv->autonomous || !priv->ssid
++                         || g_bytes_get_size(priv->ssid) < 1 || g_bytes_get_size(priv->ssid) > 32))
++        || (!priv->client && (priv->ssid || priv->psk || priv->psk_flags))
++        || (priv->client && priv->wps_method != NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DEFAULT
++            && priv->wps_method != NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED)) {
++        g_set_error_literal(error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
++                            "wifi-p2p: credential client requires a 1-32 byte SSID and excludes GO, peer and WPS");
++        return FALSE;
++    }
++
+     if (!_nm_utils_wps_method_validate(priv->wps_method,
+                                        NM_SETTING_WIFI_P2P_SETTING_NAME,
+                                        NM_SETTING_WIFI_P2P_WPS_METHOD,
+@@ -148,6 +233,35 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
+ 
+ /*****************************************************************************/
+ 
++static gboolean
++verify_secrets(NMSetting *setting, NMConnection *connection, GError **error)
++{
++    NMSettingWifiP2PPrivate *priv = NM_SETTING_WIFI_P2P_GET_PRIVATE(setting);
++    gsize len;
++    if (!priv->psk)
++        return TRUE;
++    len = strlen(priv->psk);
++    if (len >= 8 && len <= 63)
++        return TRUE;
++    if (len == 64 && strspn(priv->psk, "0123456789abcdefABCDEF") == 64)
++        return TRUE;
++    g_set_error_literal(error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
++                        "wifi-p2p.psk: expected an 8-63 byte passphrase or 64 hexadecimal digits");
++    return FALSE;
++}
++
++static GPtrArray *
++need_secrets(NMSetting *setting, gboolean check_rerequest)
++{
++    NMSettingWifiP2PPrivate *priv = NM_SETTING_WIFI_P2P_GET_PRIVATE(setting);
++    GPtrArray *secrets;
++    if (!priv->client || (!check_rerequest && priv->psk))
++        return NULL;
++    secrets = g_ptr_array_sized_new(1);
++    g_ptr_array_add(secrets, NM_SETTING_WIFI_P2P_PSK);
++    return secrets;
++}
++
+ static void
+ nm_setting_wifi_p2p_init(NMSettingWifiP2P *setting)
+ {}
+@@ -178,12 +292,14 @@ nm_setting_wifi_p2p_class_init(NMSettingWifiP2PClass *setting_wifi_p2p_class)
+     object_class->set_property = _nm_setting_property_set_property_direct;
+ 
+     setting_class->verify = verify;
++    setting_class->verify_secrets = verify_secrets;
++    setting_class->need_secrets = need_secrets;
+ 
+     /**
+      * NMSettingWifiP2P:peer:
+      *
+-     * The P2P device that should be connected to. Currently, this is the only
+-     * way to create or join a group.
++     * The P2P device that should be connected to. This is required for peer
++     * connections and must be unset when autonomous is TRUE.
+      *
+      * Since: 1.16
+      */
+@@ -245,6 +361,72 @@ nm_setting_wifi_p2p_class_init(NMSettingWifiP2PClass *setting_wifi_p2p_class)
+                                              NMSettingWifiP2P,
+                                              _priv.wfd_ies);
+ 
++    /**
++     * NMSettingWifiP2P:autonomous:
++     *
++     * Create a non-persistent autonomous group owner without a peer. The group
++     * remains active when no clients are present, until the connection is
++     * deactivated. Uses the wpa_supplicant backend. Downstream 1.58.1 extension.
++     */
++    _nm_setting_property_define_direct_boolean(properties_override,
++                                               obj_properties,
++                                               NM_SETTING_WIFI_P2P_AUTONOMOUS,
++                                               PROP_AUTONOMOUS,
++                                               FALSE,
++                                               NM_SETTING_PARAM_NONE,
++                                               NMSettingWifiP2P,
++                                               _priv.autonomous);
++
++    /**
++     * NMSettingWifiP2P:frequency:
++     *
++     * Requested autonomous GO frequency in MHz. Zero follows the current
++     * station frequency when connected, otherwise lets supplicant choose.
++     * An explicit frequency conflicting with an active station is rejected.
++     * Also accepts an existing group frequency in credential client mode; zero scans for it. Downstream 1.58.1 extension.
++     */
++    _nm_setting_property_define_direct_uint32(properties_override,
++                                              obj_properties,
++                                              NM_SETTING_WIFI_P2P_FREQUENCY,
++                                              PROP_FREQUENCY,
++                                              0, 7125, 0,
++                                              NM_SETTING_PARAM_NONE,
++                                              NMSettingWifiP2P,
++                                              _priv.frequency);
++
++    /**
++     * NMSettingWifiP2P:client:
++     *
++     * Join an existing group with SSID and PSK using a separate P2P client
++     * interface. Excludes autonomous GO, peer and WPS. Downstream extension.
++     */
++    _nm_setting_property_define_direct_boolean(properties_override, obj_properties,
++        NM_SETTING_WIFI_P2P_CLIENT, PROP_CLIENT, FALSE, NM_SETTING_PARAM_NONE,
++        NMSettingWifiP2P, _priv.client);
++    /**
++     * NMSettingWifiP2P:ssid:
++     *
++     * Raw SSID of the existing group, required in credential client mode.
++     */
++    _nm_setting_property_define_direct_bytes(properties_override, obj_properties,
++        NM_SETTING_WIFI_P2P_SSID, PROP_SSID, NM_SETTING_PARAM_NONE,
++        NMSettingWifiP2P, _priv.ssid);
++    /**
++     * NMSettingWifiP2P:psk:
++     *
++     * WPA passphrase or hexadecimal PSK for the existing group. Client only.
++     */
++    _nm_setting_property_define_direct_string(properties_override, obj_properties,
++        NM_SETTING_WIFI_P2P_PSK, PROP_PSK, NM_SETTING_PARAM_SECRET,
++        NMSettingWifiP2P, _priv.psk);
++    /**
++     * NMSettingWifiP2P:psk-flags:
++     *
++     * Secret handling flags for the group PSK.
++     */
++    _nm_setting_property_define_direct_secret_flags(properties_override, obj_properties,
++        NM_SETTING_WIFI_P2P_PSK_FLAGS, PROP_PSK_FLAGS, NMSettingWifiP2P, _priv.psk_flags);
++
+     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
+ 
+     _nm_setting_class_commit(setting_class,
+diff --git a/src/libnm-core-public/nm-setting-wifi-p2p.h b/src/libnm-core-public/nm-setting-wifi-p2p.h
+index 50cafad..ca24bd9 100644
+--- a/src/libnm-core-public/nm-setting-wifi-p2p.h
++++ b/src/libnm-core-public/nm-setting-wifi-p2p.h
+@@ -36,6 +36,12 @@ G_BEGIN_DECLS
+ #define NM_SETTING_WIFI_P2P_PEER       "peer"
+ #define NM_SETTING_WIFI_P2P_WPS_METHOD "wps-method"
+ #define NM_SETTING_WIFI_P2P_WFD_IES    "wfd-ies"
++#define NM_SETTING_WIFI_P2P_AUTONOMOUS "autonomous"
++#define NM_SETTING_WIFI_P2P_FREQUENCY  "frequency"
++#define NM_SETTING_WIFI_P2P_CLIENT "client"
++#define NM_SETTING_WIFI_P2P_SSID "ssid"
++#define NM_SETTING_WIFI_P2P_PSK "psk"
++#define NM_SETTING_WIFI_P2P_PSK_FLAGS "psk-flags"
+ 
+ typedef struct _NMSettingWifiP2PClass NMSettingWifiP2PClass;
+ 
+@@ -54,6 +60,15 @@ NMSettingWirelessSecurityWpsMethod nm_setting_wifi_p2p_get_wps_method(NMSettingW
+ NM_AVAILABLE_IN_1_16
+ GBytes *nm_setting_wifi_p2p_get_wfd_ies(NMSettingWifiP2P *setting);
+ 
++/* Downstream autonomous GO extension; not part of upstream 1.58 ABI. */
++gboolean nm_setting_wifi_p2p_get_autonomous(NMSettingWifiP2P *setting);
++guint32 nm_setting_wifi_p2p_get_frequency(NMSettingWifiP2P *setting);
++
++gboolean nm_setting_wifi_p2p_get_client(NMSettingWifiP2P *setting);
++GBytes *nm_setting_wifi_p2p_get_ssid(NMSettingWifiP2P *setting);
++const char *nm_setting_wifi_p2p_get_psk(NMSettingWifiP2P *setting);
++NMSettingSecretFlags nm_setting_wifi_p2p_get_psk_flags(NMSettingWifiP2P *setting);
++
+ G_END_DECLS
+ 
+ #endif /* __NM_SETTING_WIFI_P2P_H__ */
+diff --git a/src/libnmc-setting/nm-meta-setting-desc.c b/src/libnmc-setting/nm-meta-setting-desc.c
+index 0ac0596..aeccd26 100644
+--- a/src/libnmc-setting/nm-meta-setting-desc.c
++++ b/src/libnmc-setting/nm-meta-setting-desc.c
+@@ -8328,7 +8328,6 @@ static const NMMetaPropertyInfo *const property_infos_WIFI_P2P[] = {
+     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_PEER,
+         .is_cli_option =                TRUE,
+         .property_alias =               "peer",
+-        .inf_flags =                    NM_META_PROPERTY_INF_FLAG_REQD,
+         .prompt =                       N_("Peer"),
+         .property_type =                &_pt_gobject_mac,
+     ),
+@@ -8343,6 +8342,25 @@ static const NMMetaPropertyInfo *const property_infos_WIFI_P2P[] = {
+     PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_WFD_IES,
+         .property_type =                &_pt_gobject_bytes,
+     ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_CLIENT,
++        .property_type = &_pt_gobject_bool,
++    ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_SSID,
++        .property_type = &_pt_gobject_bytes,
++    ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_PSK,
++        .property_type = &_pt_gobject_string,
++        .is_secret = TRUE,
++    ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_PSK_FLAGS,
++        .property_type = &_pt_gobject_secret_flags,
++    ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_AUTONOMOUS,
++        .property_type =                &_pt_gobject_bool,
++    ),
++    PROPERTY_INFO_WITH_DESC (NM_SETTING_WIFI_P2P_FREQUENCY,
++        .property_type =                &_pt_gobject_int,
++    ),
+     NULL
+ };
+ 
+diff --git a/src/libnmc-setting/settings-docs.h.in b/src/libnmc-setting/settings-docs.h.in
+index 5f752ce..5269a73 100644
+--- a/src/libnmc-setting/settings-docs.h.in
++++ b/src/libnmc-setting/settings-docs.h.in
+@@ -422,7 +422,13 @@
+ #define DESCRIBE_DOC_NM_SETTING_VXLAN_SOURCE_PORT_MIN N_("Specifies the minimum UDP source port to communicate to the remote VXLAN tunnel endpoint.")
+ #define DESCRIBE_DOC_NM_SETTING_VXLAN_TOS N_("Specifies the TOS value to use in outgoing packets.")
+ #define DESCRIBE_DOC_NM_SETTING_VXLAN_TTL N_("Specifies the time-to-live value to use in outgoing packets.")
+-#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_PEER N_("The P2P device that should be connected to. Currently, this is the only way to create or join a group.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_AUTONOMOUS N_("Create a non-persistent autonomous group owner without a peer. The group remains active when no clients are present, until the connection is deactivated. Uses the wpa_supplicant backend. Downstream 1.58.1 extension.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_CLIENT N_("Join an existing group with SSID and PSK using a separate P2P client interface. Excludes autonomous GO, peer and WPS. Downstream extension.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_FREQUENCY N_("Requested autonomous GO frequency in MHz. Zero follows the current station frequency when connected, otherwise lets supplicant choose. An explicit frequency conflicting with an active station is rejected. Also accepts an existing group frequency in credential client mode; zero scans for it. Downstream 1.58.1 extension.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_PEER N_("The P2P device that should be connected to. This is required for peer connections and must be unset when autonomous is TRUE.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_PSK N_("WPA passphrase or hexadecimal PSK for the existing group. Client only.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_PSK_FLAGS N_("Secret handling flags for the group PSK.")
++#define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_SSID N_("Raw SSID of the existing group, required in credential client mode.")
+ #define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_WFD_IES N_("The Wi-Fi Display (WFD) Information Elements (IEs) to set. Wi-Fi Display requires a protocol specific information element to be set in certain Wi-Fi frames. These can be specified here for the purpose of establishing a connection. This setting is only useful when implementing a Wi-Fi Display client.")
+ #define DESCRIBE_DOC_NM_SETTING_WIFI_P2P_WPS_METHOD N_("Flags indicating which mode of WPS is to be used. There's little point in changing the default setting as NetworkManager will automatically determine the best method to use.")
+ #define DESCRIBE_DOC_NM_SETTING_WIMAX_MAC_ADDRESS N_("If specified, this connection will only apply to the WiMAX device whose MAC address matches. This property does not change the MAC address of the device (known as MAC spoofing).")
+diff --git a/src/nmcli/gen-metadata-nm-settings-nmcli.xml.in b/src/nmcli/gen-metadata-nm-settings-nmcli.xml.in
+index 801c760..d7033cd 100644
+--- a/src/nmcli/gen-metadata-nm-settings-nmcli.xml.in
++++ b/src/nmcli/gen-metadata-nm-settings-nmcli.xml.in
+@@ -2320,7 +2320,7 @@
+     <setting name="wifi-p2p" >
+         <property name="peer"
+                   alias="peer"
+-                  nmcli-description="The P2P device that should be connected to. Currently, this is the only way to create or join a group."
++                  nmcli-description="The P2P device that should be connected to. This is required for peer connections and must be unset when autonomous is TRUE."
+                   format="MAC address" />
+         <property name="wps-method"
+                   nmcli-description="Flags indicating which mode of WPS is to be used. There&apos;s little point in changing the default setting as NetworkManager will automatically determine the best method to use."
+@@ -2329,6 +2329,28 @@
+         <property name="wfd-ies"
+                   nmcli-description="The Wi-Fi Display (WFD) Information Elements (IEs) to set. Wi-Fi Display requires a protocol specific information element to be set in certain Wi-Fi frames. These can be specified here for the purpose of establishing a connection. This setting is only useful when implementing a Wi-Fi Display client."
+                   format="bytes" />
++        <property name="client"
++                  nmcli-description="Join an existing group with SSID and PSK using a separate P2P client interface. Excludes autonomous GO, peer and WPS. Downstream extension."
++                  format="boolean"
++                  values="true/yes/on, false/no/off" />
++        <property name="ssid"
++                  nmcli-description="Raw SSID of the existing group, required in credential client mode."
++                  format="bytes" />
++        <property name="psk"
++                  nmcli-description="WPA passphrase or hexadecimal PSK for the existing group. Client only."
++                  format="string" />
++        <property name="psk-flags"
++                  nmcli-description="Secret handling flags for the group PSK."
++                  format="flags (NMSettingSecretFlags)"
++                  values="none (0x0), agent-owned (0x1), not-saved (0x2), not-required (0x4)" />
++        <property name="autonomous"
++                  nmcli-description="Create a non-persistent autonomous group owner without a peer. The group remains active when no clients are present, until the connection is deactivated. Uses the wpa_supplicant backend. Downstream 1.58.1 extension."
++                  format="boolean"
++                  values="true/yes/on, false/no/off" />
++        <property name="frequency"
++                  nmcli-description="Requested autonomous GO frequency in MHz. Zero follows the current station frequency when connected, otherwise lets supplicant choose. An explicit frequency conflicting with an active station is rejected. Also accepts an existing group frequency in credential client mode; zero scans for it. Downstream 1.58.1 extension."
++                  format="integer"
++                  values="0 - 7125" />
+     </setting>
+     <setting name="wimax" >
+         <property name="mac-address"

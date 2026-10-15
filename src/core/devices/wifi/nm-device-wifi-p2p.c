@@ -45,6 +45,9 @@ typedef struct {
      */
     NMSupplicantInterface *mgmt_iface;
     NMSupplicantInterface *group_iface;
+    GCancellable *group_add_cancellable;
+    guint group_add_generation;
+    NMActRequestGetSecretsCallId *client_secrets_id;
 
     CList peers_lst_head;
 
@@ -151,6 +154,33 @@ _set_is_waiting_for_supplicant(NMDeviceWifiP2P *self, gboolean is_waiting)
 /*****************************************************************************/
 
 static gboolean
+connection_is_autonomous(NMConnection *connection)
+{
+    NMSettingWifiP2P *setting;
+
+    if (!connection)
+        return FALSE;
+    setting = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+    return setting && nm_setting_wifi_p2p_get_autonomous(setting);
+}
+
+static gboolean
+connection_is_client(NMConnection *connection)
+{
+    NMSettingWifiP2P *setting;
+    if (!connection)
+        return FALSE;
+    setting = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+    return setting && nm_setting_wifi_p2p_get_client(setting);
+}
+
+static gboolean
+connection_has_credentials(NMConnection *connection)
+{
+    return connection_is_autonomous(connection) || connection_is_client(connection);
+}
+
+static gboolean
 check_connection_peer_joined(NMDeviceWifiP2P *device)
 {
     NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
@@ -207,7 +237,8 @@ update_disconnect_on_connection_peer_missing(NMDeviceWifiP2P *self)
         return;
     }
 
-    if (check_connection_peer_joined(self)) {
+    if (connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))
+        || check_connection_peer_joined(self)) {
         if (nm_clear_g_source(&priv->peer_missing_id))
             _LOGD(LOGD_WIFI, "Peer requested in connection is joined, removing timeout");
         return;
@@ -269,6 +300,18 @@ complete_connection(NMDevice            *device,
 
     s_wifi_p2p =
         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+
+    if (connection_has_credentials(connection)) {
+        if (specific_object) {
+            g_set_error_literal(error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INVALID_CONNECTION,
+                                "A credential group cannot specify a peer object");
+            return FALSE;
+        }
+        nm_utils_complete_generic(nm_device_get_platform(device), connection,
+                                   NM_SETTING_WIFI_P2P_SETTING_NAME, existing_connections,
+                                   "Wi-Fi Direct Group", "Wi-Fi Direct Group", NULL, NULL);
+        return TRUE;
+    }
 
     if (!specific_object) {
         /* If not given a specific object, we need at minimum a peer address */
@@ -372,6 +415,8 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
     g_return_val_if_fail(s_wifi_p2p, NM_ACT_STAGE_RETURN_FAILURE);
 
+    if (nm_setting_wifi_p2p_get_autonomous(s_wifi_p2p) || nm_setting_wifi_p2p_get_client(s_wifi_p2p))
+        return NM_ACT_STAGE_RETURN_SUCCESS;
     peer = nm_wifi_p2p_peers_find_first_compatible(&priv->peers_lst_head, connection, FALSE);
     if (!peer) {
         /* Set up a timeout on the find attempt and run a find for the same period of time */
@@ -415,6 +460,49 @@ supplicant_connection_timeout_cb(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+static void
+autonomous_group_add_cb(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    gs_unref_object NMDeviceWifiP2P *self = NULL;
+    NMDeviceWifiP2PPrivate *priv;
+    gpointer generation;
+    gs_unref_variant GVariant *reply = NULL;
+    gs_free_error GError *error = NULL;
+
+    nm_utils_user_data_unpack(user_data, &self, &generation);
+    priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
+    if (G_IS_TASK(result)) {
+        if (g_task_propagate_boolean(G_TASK(result), &error))
+            reply = g_variant_ref_sink(g_variant_new("()"));
+    } else
+        reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
+    if (GPOINTER_TO_UINT(generation) != priv->group_add_generation
+        || nm_utils_error_is_cancelled(error))
+        return;
+    if (!reply && nm_device_get_state(NM_DEVICE(self)) == NM_DEVICE_STATE_CONFIG) {
+        nm_clear_g_cancellable(&priv->group_add_cancellable);
+        _LOGW(LOGD_WIFI, "P2P credential group activation failed: %s", error->message);
+        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
+                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
+    }
+}
+
+static void
+client_secrets_cb(NMActRequest *req, NMActRequestGetSecretsCallId *call_id,
+                  NMSettingsConnection *connection, GError *error, gpointer user_data)
+{
+    NMDeviceWifiP2P *self = user_data;
+    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
+    priv->client_secrets_id = NULL;
+    if (nm_utils_error_is_cancelled(error))
+        return;
+    if (error) {
+        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_NO_SECRETS);
+        return;
+    }
+    nm_device_activate_schedule_stage1_device_prepare(NM_DEVICE(self), FALSE);
+}
+
 static NMActStageReturn
 act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
@@ -437,6 +525,83 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
     g_return_val_if_fail(connection, NM_ACT_STAGE_RETURN_FAILURE);
     nm_assert(
         NM_IS_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P)));
+
+    if (connection_is_client(connection)) {
+        const char *psk;
+        gs_free_error GError *secret_error = NULL;
+        s_wifi_p2p = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+        if (priv->group_add_cancellable || priv->group_iface)
+            return NM_ACT_STAGE_RETURN_POSTPONE;
+        psk = nm_setting_wifi_p2p_get_psk(s_wifi_p2p);
+        if (!psk) {
+            if (!priv->client_secrets_id) {
+                nm_device_state_changed(device, NM_DEVICE_STATE_NEED_AUTH, NM_DEVICE_STATE_REASON_NONE);
+                priv->client_secrets_id = nm_act_request_get_secrets(nm_device_get_act_request(device),
+                    TRUE, NM_SETTING_WIFI_P2P_SETTING_NAME,
+                    NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION, NULL, client_secrets_cb, self);
+            }
+            return NM_ACT_STAGE_RETURN_POSTPONE;
+        }
+        if (!nm_setting_verify_secrets(NM_SETTING(s_wifi_p2p), connection, &secret_error)
+            || !nm_supplicant_interface_p2p_can_create_group(priv->mgmt_iface)) {
+            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+            return NM_ACT_STAGE_RETURN_FAILURE;
+        }
+        priv->group_add_generation++;
+        priv->group_add_cancellable = g_cancellable_new();
+        priv->sup_timeout_id = g_timeout_add_seconds(45, supplicant_connection_timeout_cb, self);
+        nm_supplicant_interface_p2p_join_credentials(priv->mgmt_iface,
+            nm_setting_wifi_p2p_get_ssid(s_wifi_p2p), psk,
+            nm_setting_wifi_p2p_get_frequency(s_wifi_p2p), priv->group_add_cancellable,
+            autonomous_group_add_cb, nm_utils_user_data_pack(g_object_ref(self),
+                GUINT_TO_POINTER(priv->group_add_generation)));
+        return NM_ACT_STAGE_RETURN_POSTPONE;
+    }
+
+    if (connection_is_autonomous(connection)) {
+        guint32 frequency;
+        guint32 station_frequency = 0;
+        int ifindex = 0;
+
+        /* Keep the request marker until deactivation, including after GroupAdd returns. */
+        if (priv->group_add_cancellable || priv->group_iface)
+            return NM_ACT_STAGE_RETURN_POSTPONE;
+
+        ifindex = nm_supplicant_interface_get_ifindex(priv->mgmt_iface);
+
+        if (!nm_supplicant_interface_p2p_can_create_group(priv->mgmt_iface)) {
+            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+            return NM_ACT_STAGE_RETURN_FAILURE;
+        }
+        s_wifi_p2p = NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
+        frequency = nm_setting_wifi_p2p_get_frequency(s_wifi_p2p);
+        if (nm_supplicant_interface_get_state(priv->mgmt_iface)
+            == NM_SUPPLICANT_INTERFACE_STATE_COMPLETED)
+            station_frequency = nm_platform_wifi_get_frequency(nm_device_get_platform(device),
+                                                                ifindex);
+        if (nm_supplicant_interface_get_state(priv->mgmt_iface)
+                == NM_SUPPLICANT_INTERFACE_STATE_COMPLETED && !station_frequency) {
+            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+            return NM_ACT_STAGE_RETURN_FAILURE;
+        }
+        if (frequency && station_frequency && frequency != station_frequency) {
+            NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+            return NM_ACT_STAGE_RETURN_FAILURE;
+        }
+        if (!frequency)
+            frequency = station_frequency;
+        if (!priv->group_add_cancellable && !priv->group_iface) {
+            priv->group_add_generation++;
+            priv->group_add_cancellable = g_cancellable_new();
+            priv->sup_timeout_id = g_timeout_add_seconds(45, supplicant_connection_timeout_cb, self);
+            nm_supplicant_interface_p2p_group_add(priv->mgmt_iface, frequency,
+                                                 priv->group_add_cancellable,
+                                                 autonomous_group_add_cb,
+                                                 nm_utils_user_data_pack(g_object_ref(self),
+                                                     GUINT_TO_POINTER(priv->group_add_generation)));
+        }
+        return NM_ACT_STAGE_RETURN_POSTPONE;
+    }
 
     /* The prepare stage ensures that the peer has been found */
     peer = nm_wifi_p2p_peers_find_first_compatible(&priv->peers_lst_head, connection, FALSE);
@@ -617,6 +782,10 @@ deactivate(NMDevice *device)
     nm_clear_g_source(&priv->find_peer_timeout_id);
     nm_clear_g_source(&priv->sup_timeout_id);
     nm_clear_g_source(&priv->peer_missing_id);
+    if (priv->client_secrets_id)
+        nm_act_request_cancel_secrets(NULL, priv->client_secrets_id);
+    priv->group_add_generation++;
+    nm_clear_g_cancellable(&priv->group_add_cancellable);
 
     if (priv->mgmt_iface)
         nm_supplicant_interface_p2p_cancel_connect(priv->mgmt_iface);
@@ -753,6 +922,14 @@ check_group_iface_ready(NMDeviceWifiP2P *self)
     if (!nm_supplicant_interface_get_p2p_group_joined(priv->group_iface))
         return;
 
+    if ((connection_is_autonomous(nm_device_get_applied_connection(NM_DEVICE(self)))
+         && !nm_supplicant_interface_get_p2p_group_owner(priv->group_iface))
+        || (connection_is_client(nm_device_get_applied_connection(NM_DEVICE(self)))
+            && nm_supplicant_interface_get_p2p_group_owner(priv->group_iface))) {
+        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
+                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
+        return;
+    }
     nm_clear_g_source(&priv->sup_timeout_id);
     update_disconnect_on_connection_peer_missing(self);
 
@@ -842,7 +1019,9 @@ supplicant_iface_group_started_cb(NMSupplicantInterface *iface,
 
     g_return_if_fail(self);
 
-    if (!nm_device_is_activating(NM_DEVICE(self))) {
+    if (!nm_device_is_activating(NM_DEVICE(self))
+        || (connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))
+            && nm_device_get_state(NM_DEVICE(self)) != NM_DEVICE_STATE_CONFIG)) {
         _LOGW(LOGD_DEVICE | LOGD_WIFI,
               "P2P: WPA supplicant notified a group start but we are not trying to connect! "
               "Ignoring the event.");
@@ -850,6 +1029,15 @@ supplicant_iface_group_started_cb(NMSupplicantInterface *iface,
     }
 
     priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
+    if (group_iface == priv->mgmt_iface
+        && connection_has_credentials(nm_device_get_applied_connection(NM_DEVICE(self)))) {
+        _LOGW(LOGD_WIFI, "P2P group requires a separate interface");
+        nm_device_state_changed(NM_DEVICE(self), NM_DEVICE_STATE_FAILED,
+                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
+        return;
+    }
+    if (priv->group_iface)
+        return;
 
     supplicant_group_interface_release(self);
 
@@ -902,6 +1090,10 @@ supplicant_interfaces_release(NMDeviceWifiP2P *self, gboolean set_is_waiting)
 
     nm_clear_g_source(&priv->peer_dump_id);
 
+    if (priv->client_secrets_id)
+        nm_act_request_cancel_secrets(NULL, priv->client_secrets_id);
+    priv->group_add_generation++;
+    nm_clear_g_cancellable(&priv->group_add_cancellable);
     remove_all_peers(self);
 
     if (priv->mgmt_iface) {
@@ -1121,6 +1313,58 @@ impl_device_wifi_p2p_stop_find(NMDBusObject                      *obj,
                            NULL);
 }
 
+static void
+p2p_get_group_credentials_auth_cb(NMDevice *device,
+                                  GDBusMethodInvocation *invocation,
+                                  NMAuthSubject *subject,
+                                  GError *error,
+                                  gpointer user_data)
+{
+    gs_unref_object NMSupplicantInterface *expected_group = user_data;
+    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
+    gs_unref_variant GVariant *credentials = NULL;
+
+    if (error) {
+        g_dbus_method_invocation_return_gerror(invocation, error);
+        return;
+    }
+    if (nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED
+        && expected_group && priv->group_iface == expected_group
+        && connection_is_autonomous(nm_device_get_applied_connection(device)))
+        credentials = nm_supplicant_interface_p2p_group_credentials(expected_group);
+    if (!credentials) {
+        g_dbus_method_invocation_return_error_literal(invocation, NM_DEVICE_ERROR,
+            NM_DEVICE_ERROR_NOT_ACTIVE, "No ready autonomous group for this activation");
+        return;
+    }
+    g_dbus_method_invocation_return_value(invocation,
+                                         g_variant_new("(@a{sv})", g_steal_pointer(&credentials)));
+}
+
+static void
+impl_device_wifi_p2p_get_group_credentials(NMDBusObject *obj,
+                                          const NMDBusInterfaceInfoExtended *interface_info,
+                                          const NMDBusMethodInfoExtended *method_info,
+                                          GDBusConnection *connection,
+                                          const char *sender,
+                                          GDBusMethodInvocation *invocation,
+                                          GVariant *parameters)
+{
+    NMDevice *device = NM_DEVICE(obj);
+    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
+    NMConnection *applied = nm_device_get_applied_connection(device);
+
+    if (!connection_is_autonomous(applied) || !priv->group_iface
+        || nm_device_get_state(device) != NM_DEVICE_STATE_ACTIVATED) {
+        g_dbus_method_invocation_return_error_literal(invocation, NM_DEVICE_ERROR,
+            NM_DEVICE_ERROR_NOT_ACTIVE, "No active autonomous group");
+        return;
+    }
+    nm_device_auth_request(device, invocation, applied, NM_AUTH_PERMISSION_NETWORK_CONTROL,
+                           TRUE, NULL, p2p_get_group_credentials_auth_cb,
+                           g_object_ref(priv->group_iface));
+}
+
 static gboolean
 get_enabled(NMDevice *device)
 {
@@ -1234,6 +1478,12 @@ static const NMDBusInterfaceInfoExtended interface_info_device_wifi_p2p = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_WIFI_P2P,
         .methods = NM_DEFINE_GDBUS_METHOD_INFOS(
+            NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(
+                NM_DEFINE_GDBUS_METHOD_INFO_INIT(
+                    "GetGroupCredentials",
+                    .out_args = NM_DEFINE_GDBUS_ARG_INFOS(
+                        NM_DEFINE_GDBUS_ARG_INFO("credentials", "a{sv}"), ), ),
+                .handle = impl_device_wifi_p2p_get_group_credentials, ),
             NM_DEFINE_DBUS_METHOD_INFO_EXTENDED(
                 NM_DEFINE_GDBUS_METHOD_INFO_INIT(
                     "StartFind",

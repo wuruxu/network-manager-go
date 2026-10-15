@@ -1,0 +1,109 @@
+Connection 'crquickshare-go-validation' (7d6c91bd-ab51-40ec-878b-d8715c1f3ab2) successfully added.
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/7)
+GENERAL.DEVICE:                         p2p-dev-wlp3s0
+GENERAL.TYPE:                           wifi-p2p
+GENERAL.NM-TYPE:                        NMDeviceWifiP2P
+GENERAL.DBUS-PATH:                      /org/freedesktop/NetworkManager/Devices/10
+GENERAL.VENDOR:                         --
+GENERAL.PRODUCT:                        --
+GENERAL.DRIVER:                         (unknown)
+GENERAL.DRIVER-VERSION:                 --
+GENERAL.FIRMWARE-VERSION:               --
+GENERAL.HWADDR:                         (unknown)
+GENERAL.MTU:                            1500
+GENERAL.STATE:                          100 (connected)
+GENERAL.REASON:                         0 (No reason given)
+GENERAL.IP4-CONNECTIVITY:               3 (limited)
+GENERAL.IP6-CONNECTIVITY:               3 (limited)
+GENERAL.UDI:                            /virtual/device/placeholder/1
+GENERAL.PATH:                           --
+GENERAL.IP-IFACE:                       p2p-wlp3s0-1
+GENERAL.IS-SOFTWARE:                    no
+GENERAL.NM-MANAGED:                     yes
+GENERAL.AUTOCONNECT:                    yes
+GENERAL.FIRMWARE-MISSING:               no
+GENERAL.NM-PLUGIN-MISSING:              no
+GENERAL.PHYS-PORT-ID:                   --
+GENERAL.CONNECTION:                     crquickshare-go-validation
+GENERAL.CON-UUID:                       7d6c91bd-ab51-40ec-878b-d8715c1f3ab2
+GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/7
+GENERAL.METERED:                        no (guessed)
+IP4.ADDRESS[1]:                         10.42.0.1/24
+IP4.GATEWAY:                            --
+IP4.ROUTE[1]:                           dst = 10.42.0.0/24, nh = 0.0.0.0, mt = 950
+phy#0
+	Interface p2p-wlp3s0-1
+		ifindex 349
+		wdev 0x30
+		addr dc:97:ba:3d:15:d1
+		ssid DIRECT-zm
+		type P2P-GO
+		channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+		txpower 22.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	0	0	0	0	0	0		0
+	Unnamed/non-netdev interface
+		wdev 0x2e
+		addr dc:97:ba:3d:15:d0
+		type P2P-device
+	Interface wlp3s0
+		ifindex 4
+		wdev 0x1
+		addr dc:97:ba:3d:15:d0
+		type managed
+		channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+		txpower 22.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	142319	0	0	0	0	40394659		142319
+credential_keys=frequency,interface,passphrase,ssid
+passphrase_length=8
+frequency=2462
+interface=p2p-wlp3s0-1
+credential_ACL_denied=Call failed: uid 65534 has no permission to perform this operation
+p2p-dev-wlp3s0:wifi-p2p:connected
+wlp3s0:wifi:connected
+lxcbr0:bridge:connected (externally)
+virbr0:bridge:connected (externally)
+lo:loopback:connected (externally)
+wg0-mullvad:wireguard:connected (externally)
+94\:45\:60\:6D\:A7\:D5:bt:disconnected
+enp2s0f0:ethernet:unavailable
+enp5s0:ethernet:unavailable
+veth-host:ethernet:unmanaged
+    PID COMMAND
+   1420 dnsmasq --conf-file=/dev/null -u dnsmasq --strict-order --bind-interfaces --pid-file=/run/lxc/dnsmasq.pid --listen-address 10.0.3.1 --dhcp-range 10.0.3.2,10.0.3.254 --dhcp-lease-max=253 --dhcp-no-override --except-interface=lo --interface=lxcbr0 --dhcp-leasefile=/var/lib/misc/dnsmasq.lxcbr0.leases --dhcp-authoritative --dhcp-range=fc42:5009:ba4b:5ab0::1,ra-only --listen-address fc42:5009:ba4b:5ab0::1
+   2063 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/lib/libvirt/libvirt_leaseshelper
+   2064 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/lib/libvirt/libvirt_leaseshelper
+3097265 /usr/sbin/dnsmasq --conf-file=/dev/null --no-hosts --keep-in-foreground --bind-interfaces --except-interface=lo --clear-on-reload --strict-order --listen-address=10.42.0.1 --dhcp-range=10.42.0.10,10.42.0.254,3600 --dhcp-option-force=43,ANDROID_METERED --dhcp-leasefile=/var/lib/NetworkManager/dnsmasq-p2p-wlp3s0-1.leases --pid-file=/run/nm-dnsmasq-p2p-wlp3s0-1.pid --conf-dir=/etc/NetworkManager/dnsmasq-shared.d
+credentials_after_deactivation=Call failed: No active autonomous group
+    PID COMMAND
+   1420 dnsmasq --conf-file=/dev/null -u dnsmasq --strict-order --bind-interfaces --pid-file=/run/lxc/dnsmasq.pid --listen-address 10.0.3.1 --dhcp-range 10.0.3.2,10.0.3.254 --dhcp-lease-max=253 --dhcp-no-override --except-interface=lo --interface=lxcbr0 --dhcp-leasefile=/var/lib/misc/dnsmasq.lxcbr0.leases --dhcp-authoritative --dhcp-range=fc42:5009:ba4b:5ab0::1,ra-only --listen-address fc42:5009:ba4b:5ab0::1
+   2063 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/lib/libvirt/libvirt_leaseshelper
+   2064 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/lib/libvirt/libvirt_leaseshelper
+phy#0
+	Unnamed/non-netdev interface
+		wdev 0x2e
+		addr dc:97:ba:3d:15:d0
+		type P2P-device
+	Interface wlp3s0
+		ifindex 4
+		wdev 0x1
+		addr dc:97:ba:3d:15:d0
+		type managed
+		channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+		txpower 22.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	142319	0	0	0	0	40394659		142319
+wlp3s0:wifi:connected
+lxcbr0:bridge:connected (externally)
+virbr0:bridge:connected (externally)
+lo:loopback:connected (externally)
+wg0-mullvad:wireguard:connected (externally)
+94\:45\:60\:6D\:A7\:D5:bt:disconnected
+p2p-dev-wlp3s0:wifi-p2p:disconnected
+enp2s0f0:ethernet:unavailable
+enp5s0:ethernet:unavailable
+veth-host:ethernet:unmanaged

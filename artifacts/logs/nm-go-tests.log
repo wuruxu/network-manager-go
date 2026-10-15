@@ -1,0 +1,12 @@
+1/7 NetworkManager:check-local-gen-metadata-nm-settings-libnm-core OK               0.04s
+2/7 NetworkManager:check-settings-docs                             OK               0.03s
+3/7 NetworkManager:check-local-gen-metadata-nm-settings-nmcli      OK               0.03s
+4/7 NetworkManager:supplicant/test-supplicant-config               OK               0.03s
+5/7 NetworkManager:src/libnm-core-impl/tests/test-keyfile          OK               0.04s
+6/7 NetworkManager:check-local-exports-libnm                       OK               0.10s
+7/7 NetworkManager:src/libnm-core-impl/tests/test-setting          OK               0.09s
+
+Ok:                7   
+Fail:              0   
+
+Full log written to /home/user/dev/chromium/src/network-manager-go/obj-x86_64-linux-gnu/meson-logs/testlog.txt

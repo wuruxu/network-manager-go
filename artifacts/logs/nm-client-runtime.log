@@ -1,0 +1,77 @@
+Connection 'crquickshare-client-validation' (3eb1f5a2-4f46-464f-917e-4bf97eec5806) successfully added.
+wifi-p2p.peer:                          --
+wifi-p2p.wps-method:                    0x0 (default)
+wifi-p2p.wfd-ies:                       --
+wifi-p2p.client:                        yes
+wifi-p2p.ssid:                          4449524543542D4E4D2D76616C69646174696F6E
+wifi-p2p.psk:                           <hidden>
+wifi-p2p.psk-flags:                     0 (none)
+wifi-p2p.autonomous:                    no
+wifi-p2p.frequency:                     2462
+phy#0
+	Interface p2p-wlp3s0-0
+		ifindex 348
+		wdev 0x2f
+		addr dc:97:ba:3d:15:d1
+		type P2P-client
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	0	0	0	0	0	0		0
+	Unnamed/non-netdev interface
+		wdev 0x2e
+		addr dc:97:ba:3d:15:d0
+		type P2P-device
+	Interface wlp3s0
+		ifindex 4
+		wdev 0x1
+		addr dc:97:ba:3d:15:d0
+		type managed
+		channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+		txpower 22.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	142319	0	0	0	0	40394659		142319
+GENERAL.STATE:                          50 (connecting (configuring))
+GENERAL.REASON:                         0 (No reason given)
+GENERAL.IP-IFACE:                       --
+wlp3s0:wifi:connected
+p2p-dev-wlp3s0:wifi-p2p:connecting (configuring)
+lxcbr0:bridge:connected (externally)
+virbr0:bridge:connected (externally)
+lo:loopback:connected (externally)
+wg0-mullvad:wireguard:connected (externally)
+94\:45\:60\:6D\:A7\:D5:bt:disconnected
+enp2s0f0:ethernet:unavailable
+enp5s0:ethernet:unavailable
+veth-host:ethernet:unmanaged
+default via 10.46.45.16 dev wlp3s0 proto dhcp src 10.46.45.79 metric 600 
+10.0.3.0/24 dev lxcbr0 proto kernel scope link src 10.0.3.1 linkdown 
+10.46.45.0/24 dev wlp3s0 proto kernel scope link src 10.46.45.79 metric 600 
+10.64.0.1 dev wg0-mullvad proto static 
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown 
+192.168.222.0/24 dev veth-host proto kernel scope link src 192.168.222.1 
+phy#0
+	Unnamed/non-netdev interface
+		wdev 0x2e
+		addr dc:97:ba:3d:15:d0
+		type P2P-device
+	Interface wlp3s0
+		ifindex 4
+		wdev 0x1
+		addr dc:97:ba:3d:15:d0
+		type managed
+		channel 11 (2462 MHz), width: 20 MHz, center1: 2462 MHz
+		txpower 22.00 dBm
+		multicast TXQ:
+			qsz-byt	qsz-pkt	flows	drops	marks	overlmt	hashcol	tx-bytes	tx-packets
+			0	0	142319	0	0	0	0	40394659		142319
+wlp3s0:wifi:connected
+lxcbr0:bridge:connected (externally)
+virbr0:bridge:connected (externally)
+lo:loopback:connected (externally)
+wg0-mullvad:wireguard:connected (externally)
+94\:45\:60\:6D\:A7\:D5:bt:disconnected
+p2p-dev-wlp3s0:wifi-p2p:disconnected
+enp2s0f0:ethernet:unavailable
+enp5s0:ethernet:unavailable
+veth-host:ethernet:unmanaged

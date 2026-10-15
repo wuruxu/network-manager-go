@@ -1,0 +1,13 @@
+Package: network-manager-ovs
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 127
+Depends: libnm0 (= 1.58.1-1+crquickshare2), libc6 (>= 2.14), libglib2.0-0t64 (>= 2.58.0), libjansson4 (>= 2.14)
+Recommends: openvswitch-switch
+Section: net
+Priority: optional
+Homepage: https://networkmanager.dev/
+Description: Open vSwitch device plugin for NetworkManager
+ This package contains NetworkManager support for Open vSwitch bridges.

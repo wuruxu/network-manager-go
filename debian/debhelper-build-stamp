@@ -1,0 +1,10 @@
+network-manager
+network-manager-tui
+network-manager-ovs
+network-manager-team
+network-manager-dev
+network-manager-l10n
+libnm0
+libnm-dev
+gir1.2-nm-1.0
+network-manager-config-connectivity-debian

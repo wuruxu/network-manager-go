@@ -1,0 +1,17 @@
+Package: network-manager-tui
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 912
+Depends: libnm0 (= 1.58.1-1+crquickshare2), libc6 (>= 2.38), libglib2.0-0t64 (>= 2.44.0), libnewt0.52 (>= 0.52.25), libslang2 (>= 2.2.4)
+Breaks: network-manager (<< 1.56.0-4~)
+Replaces: network-manager (<< 1.56.0-4~)
+Section: net
+Priority: optional
+Homepage: https://networkmanager.dev/
+Description: NetworkManager curses-based UI
+ This package contains nmtui, a curses-based "TUI" (Text User Interface) for
+ NetworkManager, to allow performing some of the operations supported by
+ nm-connection-editor and nm-applet in a non-graphical environment.
+Commands: nmtui, nmtui-connect, nmtui-edit, nmtui-hostname

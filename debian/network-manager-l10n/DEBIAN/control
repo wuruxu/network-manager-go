@@ -1,0 +1,15 @@
+Package: network-manager-l10n
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: all
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 11056
+Breaks: network-manager (<< 1.52.0-3~)
+Replaces: network-manager (<< 1.52.0-3~)
+Section: localization
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://networkmanager.dev/
+Description: network management framework (translation files)
+ This package provides translations for messages of the programs found in the
+ network-manager package.

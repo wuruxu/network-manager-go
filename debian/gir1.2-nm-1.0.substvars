@@ -1,0 +1,1 @@
+gir:Depends=gir1.2-gio-2.0, libnm0 (>= 1.58.1-1+crquickshare2)

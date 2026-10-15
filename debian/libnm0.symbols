@@ -1982,3 +1982,12 @@ libnm.so.0 libnm0 #MINVER#
  nm_wireguard_peer_set_preshared_key_flags@libnm_1_16_0 1.16.0
  nm_wireguard_peer_set_public_key@libnm_1_16_0 1.16.0
  nm_wireguard_peer_unref@libnm_1_16_0 1.16.0
+ nm_setting_wifi_p2p_get_autonomous@libnm_crquickshare_go_1 1.58.1-1+crquickshare1
+ nm_setting_wifi_p2p_get_frequency@libnm_crquickshare_go_1 1.58.1-1+crquickshare1
+ nm_device_wifi_p2p_get_group_credentials@libnm_crquickshare_go_1 1.58.1-1+crquickshare1
+ nm_device_wifi_p2p_get_group_credentials_finish@libnm_crquickshare_go_1 1.58.1-1+crquickshare1
+ libnm_crquickshare_go_1@libnm_crquickshare_go_1 1.58.1-1+crquickshare1
+ nm_setting_wifi_p2p_get_client@libnm_crquickshare_go_1 1.58.1-1+crquickshare2
+ nm_setting_wifi_p2p_get_ssid@libnm_crquickshare_go_1 1.58.1-1+crquickshare2
+ nm_setting_wifi_p2p_get_psk@libnm_crquickshare_go_1 1.58.1-1+crquickshare2
+ nm_setting_wifi_p2p_get_psk_flags@libnm_crquickshare_go_1 1.58.1-1+crquickshare2

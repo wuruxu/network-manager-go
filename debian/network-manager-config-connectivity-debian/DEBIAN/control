@@ -1,0 +1,23 @@
+Package: network-manager-config-connectivity-debian
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: all
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 22
+Depends: network-manager (>= 1.58.1-1+crquickshare2)
+Section: net
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://networkmanager.dev/
+Description: NetworkManager configuration to enable connectivity checking
+ This package contains a configuration file which enables NetworkManager's
+ connectivity checking functionality.
+ .
+ NetworkManager will try to connect to a Debian server to determine the
+ connection status.
+ .
+ This is particularly useful for captive portal detection.
+ .
+ No user data is transmitted in the connectivity checks, but merely contacting
+ the Debian connectivity check servers reveals that the user is running a
+ Debian(-based) operating system with NetworkManager.

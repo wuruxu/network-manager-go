@@ -142,6 +142,12 @@ check_connection_compatible(NMDevice     *device,
     s_wifi_p2p =
         NM_SETTING_WIFI_P2P(nm_connection_get_setting(connection, NM_TYPE_SETTING_WIFI_P2P));
 
+    if (nm_setting_wifi_p2p_get_autonomous(s_wifi_p2p) || nm_setting_wifi_p2p_get_client(s_wifi_p2p)) {
+        nm_utils_error_set_literal(error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+                                   "Autonomous P2P groups require the wpa_supplicant backend");
+        return FALSE;
+    }
+
     /* Any of the existing values other than DISABLED is ok */
     if (nm_setting_wifi_p2p_get_wps_method(s_wifi_p2p)
         == NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED) {

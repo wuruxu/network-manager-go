@@ -25,6 +25,20 @@
     <property name="Peers" type="ao" access="read"/>
 
     <!--
+        GetGroupCredentials:
+        @credentials: SSID (ay), passphrase (s), frequency in MHz (u), interface (s).
+
+        Read credentials of the currently activated autonomous group. Requires
+        network-control authorization and access to the applied connection.
+        Returns NotActive if the group changes while authorization is pending.
+        Credentials are not published in properties or signals. Read addresses
+        through the standard Device IP configuration objects. Downstream extension.
+    -->
+    <method name="GetGroupCredentials">
+      <arg name="credentials" type="a{sv}" direction="out"/>
+    </method>
+
+    <!--
         StartFind:
         @options: Options of find.
 

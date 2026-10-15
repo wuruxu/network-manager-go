@@ -69,6 +69,15 @@ NM_AVAILABLE_IN_1_16
 gboolean
 nm_device_wifi_p2p_stop_find_finish(NMDeviceWifiP2P *device, GAsyncResult *result, GError **error);
 
+/* Downstream autonomous GO extension. */
+void nm_device_wifi_p2p_get_group_credentials(NMDeviceWifiP2P *device,
+                                             GCancellable *cancellable,
+                                             GAsyncReadyCallback callback,
+                                             gpointer user_data);
+GVariant *nm_device_wifi_p2p_get_group_credentials_finish(NMDeviceWifiP2P *device,
+                                                        GAsyncResult *result,
+                                                        GError **error);
+
 G_END_DECLS
 
 #endif /* __NM_DEVICE_WIFI_P2P_H__ */

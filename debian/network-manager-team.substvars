@@ -1,0 +1,1 @@
+shlibs:Depends=libc6 (>= 2.4), libglib2.0-0t64 (>= 2.42), libjansson4 (>= 2.14), libteamdctl0 (>= 1.9)

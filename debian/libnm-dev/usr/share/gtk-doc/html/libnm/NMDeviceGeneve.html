@@ -1,0 +1,460 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta charset="UTF-8">
+<title>NMDeviceGeneve: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
+<link rel="prev" href="NMDeviceGeneric.html" title="NMDeviceGeneric">
+<link rel="next" href="NMDeviceHsr.html" title="NMDeviceHsr">
+<meta name="generator" content="GTK-Doc V1.36.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#NMDeviceGeneve.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMDeviceGeneve.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#NMDeviceGeneve.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="NMDeviceGeneric.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NMDeviceHsr.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="NMDeviceGeneve"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMDeviceGeneve.top_of_page"></a>NMDeviceGeneve</span></h2>
+<p>NMDeviceGeneve</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-id" title="nm_device_geneve_get_id ()">nm_device_geneve_get_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-remote" title="nm_device_geneve_get_remote ()">nm_device_geneve_get_remote</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-dst-port" title="nm_device_geneve_get_dst_port ()">nm_device_geneve_get_dst_port</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-tos" title="nm_device_geneve_get_tos ()">nm_device_geneve_get_tos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-ttl" title="nm_device_geneve_get_ttl ()">nm_device_geneve_get_ttl</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMDeviceGeneve.html#nm-device-geneve-get-df" title="nm_device_geneve_get_df ()">nm_device_geneve_get_df</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">guchar</span></td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--df" title="The “df” property">df</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--dst-port" title="The “dst-port” property">dst-port</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--id" title="The “id” property">id</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--remote" title="The “remote” property">remote</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guchar</span></td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--tos" title="The “tos” property">tos</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">int</span></td>
+<td class="property_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve--ttl" title="The “ttl” property">ttl</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-ID:CAPS" title="NM_DEVICE_GENEVE_ID">NM_DEVICE_GENEVE_ID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-REMOTE:CAPS" title="NM_DEVICE_GENEVE_REMOTE">NM_DEVICE_GENEVE_REMOTE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-TOS:CAPS" title="NM_DEVICE_GENEVE_TOS">NM_DEVICE_GENEVE_TOS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-TTL:CAPS" title="NM_DEVICE_GENEVE_TTL">NM_DEVICE_GENEVE_TTL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-DST-PORT:CAPS" title="NM_DEVICE_GENEVE_DST_PORT">NM_DEVICE_GENEVE_DST_PORT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NM-DEVICE-GENEVE-DF:CAPS" title="NM_DEVICE_GENEVE_DF">NM_DEVICE_GENEVE_DF</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDeviceGeneve.html#NMDeviceGeneve-struct" title="NMDeviceGeneve">NMDeviceGeneve</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+            <span class="lineart">╰──</span> NMDeviceGeneve
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="nm-device-geneve-get-id"></a><h3>nm_device_geneve_get_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_device_geneve_get_id (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-id.returns"></a><h4>Returns</h4>
+<p> the device's GENEVE ID.</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-geneve-get-remote"></a><h3>nm_device_geneve_get_remote ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_device_geneve_get_remote (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-remote.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-remote.returns"></a><h4>Returns</h4>
+<p> the IP address of the remote tunnel endpoint</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-geneve-get-dst-port"></a><h3>nm_device_geneve_get_dst_port ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_device_geneve_get_dst_port (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-dst-port.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-dst-port.returns"></a><h4>Returns</h4>
+<p> the UDP destination port</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-geneve-get-tos"></a><h3>nm_device_geneve_get_tos ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_device_geneve_get_tos (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-tos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-tos.returns"></a><h4>Returns</h4>
+<p> the TOS value to use in outgoing packets</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-geneve-get-ttl"></a><h3>nm_device_geneve_get_ttl ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_device_geneve_get_ttl (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-ttl.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-ttl.returns"></a><h4>Returns</h4>
+<p> the time-to-live value to use in outgoing packets</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-geneve-get-df"></a><h3>nm_device_geneve_get_df ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_device_geneve_get_df (<em class="parameter"><code><a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a> *device</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-device-geneve-get-df.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDeviceGeneve.html" title="NMDeviceGeneve"><span class="type">NMDeviceGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-geneve-get-df.returns"></a><h4>Returns</h4>
+<p> the Don't Fragment (DF) bit to set in outgoing packets</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-ID:CAPS"></a><h3>NM_DEVICE_GENEVE_ID</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_ID       "id"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-REMOTE:CAPS"></a><h3>NM_DEVICE_GENEVE_REMOTE</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_REMOTE   "remote"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-TOS:CAPS"></a><h3>NM_DEVICE_GENEVE_TOS</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_TOS      "tos"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-TTL:CAPS"></a><h3>NM_DEVICE_GENEVE_TTL</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_TTL      "ttl"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-DST-PORT:CAPS"></a><h3>NM_DEVICE_GENEVE_DST_PORT</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_DST_PORT "dst-port"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-GENEVE-DF:CAPS"></a><h3>NM_DEVICE_GENEVE_DF</h3>
+<pre class="programlisting">#define NM_DEVICE_GENEVE_DF       "df"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve-struct"></a><h3>NMDeviceGeneve</h3>
+<pre class="programlisting">typedef struct _NMDeviceGeneve NMDeviceGeneve;</pre>
+<p class="since">Since: 1.58</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMDeviceGeneve.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="NMDeviceGeneve--df"></a><h3>The <code class="literal">“df”</code> property</h3>
+<pre class="programlisting">  “df”                       <span class="type">guchar</span></pre>
+<p>The Don't Fragment (DF) bit to set in outgoing packets.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Allowed values: &lt;= 2</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve--dst-port"></a><h3>The <code class="literal">“dst-port”</code> property</h3>
+<pre class="programlisting">  “dst-port”                 <span class="type">guint</span></pre>
+<p>The UDP destination port used to communicate with the remote GENEVE tunnel
+endpoint.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Allowed values: &lt;= 65535</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve--id"></a><h3>The <code class="literal">“id”</code> property</h3>
+<pre class="programlisting">  “id”                       <span class="type">guint</span></pre>
+<p>The device's GENEVE ID.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Allowed values: &lt;= 16777215</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve--remote"></a><h3>The <code class="literal">“remote”</code> property</h3>
+<pre class="programlisting">  “remote”                   <span class="type">char</span> *</pre>
+<p>The IP address of the remote tunnel endpoint.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve--tos"></a><h3>The <code class="literal">“tos”</code> property</h3>
+<pre class="programlisting">  “tos”                      <span class="type">guchar</span></pre>
+<p>The TOS value to use in outgoing packets.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceGeneve--ttl"></a><h3>The <code class="literal">“ttl”</code> property</h3>
+<pre class="programlisting">  “ttl”                      <span class="type">int</span></pre>
+<p>The time-to-live value to use in outgoing packets.</p>
+<p>Owner: NMDeviceGeneve</p>
+<p>Flags: Read</p>
+<p>Allowed values: [-1,255]</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.58</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.36.1</div>
+</body>
+</html>

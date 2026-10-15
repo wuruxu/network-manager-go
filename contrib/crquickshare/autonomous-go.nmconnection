@@ -1,0 +1,19 @@
+# Example only. Loading or activating this file changes the running system.
+[connection]
+id=Quick Share GO
+uuid=d1f8a59d-695f-4f99-9d5e-2d7557736f69
+type=wifi-p2p
+interface-name=p2p-dev-wlp3s0
+autoconnect=false
+
+[wifi-p2p]
+autonomous=true
+frequency=0
+
+[ipv4]
+method=shared
+never-default=true
+
+[ipv6]
+method=link-local
+never-default=true

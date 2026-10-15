@@ -1,0 +1,27 @@
+[
+  {
+    "file": "network-manager_1.58.1-1_amd64.deb",
+    "size": 2302736,
+    "sha256": "b7f3de913f418b9150f2fb98e33ca881331364df361c562e7bfe57cbce9d0441"
+  },
+  {
+    "file": "libnm0_1.58.1-1_amd64.deb",
+    "size": 496592,
+    "sha256": "ffcea86babbf3ed3726144e354e31ef3fece5b724e6a1ba4ade8038f11340329"
+  },
+  {
+    "file": "libnm-dev_1.58.1-1_amd64.deb",
+    "size": 772512,
+    "sha256": "a7d699e31720b37f86731fd283e2fff6b158a811a80175d9628c3bbc0f04e719"
+  },
+  {
+    "file": "network-manager-dev_1.58.1-1_all.deb",
+    "size": 223912,
+    "sha256": "a5f1170021a37d41e7a1c31595e4c83a91833aaaabb5ec93f71d43582c4f2721"
+  },
+  {
+    "file": "gir1.2-nm-1.0_1.58.1-1_amd64.deb",
+    "size": 85008,
+    "sha256": "d5ab9a9cc3493697617d555a6e2e9e02118396d3ab2faf89122f5c0ba60a415c"
+  }
+]

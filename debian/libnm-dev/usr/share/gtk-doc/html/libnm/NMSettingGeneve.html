@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta charset="UTF-8">
+<title>NMSettingGeneve: libnm Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libnm Reference Manual">
+<link rel="up" href="ch03.html" title="Connection and Setting API Reference">
+<link rel="prev" href="NMSettingGeneric.html" title="NMSettingGeneric">
+<link rel="next" href="NMSettingGsm.html" title="NMSettingGsm">
+<meta name="generator" content="GTK-Doc V1.36.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#NMSettingGeneve.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#NMSettingGeneve.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="NMSettingGeneric.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="NMSettingGsm.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="NMSettingGeneve"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="NMSettingGeneve.top_of_page"></a>NMSettingGeneve</span></h2>
+<p>NMSettingGeneve — Describes connection properties for GENEVE interfaces</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="NMSettingGeneve.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-new" title="nm_setting_geneve_new ()">nm_setting_geneve_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-id" title="nm_setting_geneve_get_id ()">nm_setting_geneve_get_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-remote" title="nm_setting_geneve_get_remote ()">nm_setting_geneve_get_remote</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-destination-port" title="nm_setting_geneve_get_destination_port ()">nm_setting_geneve_get_destination_port</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-tos" title="nm_setting_geneve_get_tos ()">nm_setting_geneve_get_tos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-ttl" title="nm_setting_geneve_get_ttl ()">nm_setting_geneve_get_ttl</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingGeneve.html#NMSettingGeneveDf" title="enum NMSettingGeneveDf"><span class="returnvalue">NMSettingGeneveDf</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingGeneve.html#nm-setting-geneve-get-df" title="nm_setting_geneve_get_df ()">nm_setting_geneve_get_df</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingGeneve.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-SETTING-NAME:CAPS" title="NM_SETTING_GENEVE_SETTING_NAME">NM_SETTING_GENEVE_SETTING_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-ID:CAPS" title="NM_SETTING_GENEVE_ID">NM_SETTING_GENEVE_ID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-REMOTE:CAPS" title="NM_SETTING_GENEVE_REMOTE">NM_SETTING_GENEVE_REMOTE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-DESTINATION-PORT:CAPS" title="NM_SETTING_GENEVE_DESTINATION_PORT">NM_SETTING_GENEVE_DESTINATION_PORT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-TOS:CAPS" title="NM_SETTING_GENEVE_TOS">NM_SETTING_GENEVE_TOS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-TTL:CAPS" title="NM_SETTING_GENEVE_TTL">NM_SETTING_GENEVE_TTL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NM-SETTING-GENEVE-DF:CAPS" title="NM_SETTING_GENEVE_DF">NM_SETTING_GENEVE_DF</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="NMSettingGeneve.html#NMSettingGeneveDf" title="enum NMSettingGeneveDf">NMSettingGeneveDf</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="NMSettingGeneve.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+    <span class="lineart">╰──</span> NMSettingGeneveDf
+</pre>
+</div>
+<div class="refsect1">
+<a name="NMSettingGeneve.description"></a><h2>Description</h2>
+<p>The <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
+necessary for connection to GENEVE interfaces.</p>
+</div>
+<div class="refsect1">
+<a name="NMSettingGeneve.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="nm-setting-geneve-new"></a><h3>nm_setting_geneve_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMSetting.html" title="NMSetting"><span class="returnvalue">NMSetting</span></a> *
+nm_setting_geneve_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> object with default values.</p>
+<div class="refsect3">
+<a name="nm-setting-geneve-new.returns"></a><h4>Returns</h4>
+<p>the new empty <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> object. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-id"></a><h3>nm_setting_geneve_get_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_geneve_get_id (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-id.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“id”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-remote"></a><h3>nm_setting_geneve_get_remote ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_geneve_get_remote (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-remote.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-remote.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“remote”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-destination-port"></a><h3>nm_setting_geneve_get_destination_port ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_geneve_get_destination_port
+                               (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-destination-port.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-destination-port.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“destination-port”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-tos"></a><h3>nm_setting_geneve_get_tos ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_geneve_get_tos (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-tos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-tos.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“tos”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-ttl"></a><h3>nm_setting_geneve_get_ttl ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+nm_setting_geneve_get_ttl (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-ttl.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-ttl.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“ttl”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-geneve-get-df"></a><h3>nm_setting_geneve_get_df ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingGeneve.html#NMSettingGeneveDf" title="enum NMSettingGeneveDf"><span class="returnvalue">NMSettingGeneveDf</span></a>
+nm_setting_geneve_get_df (<em class="parameter"><code><a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-df.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingGeneve.html" title="NMSettingGeneve"><span class="type">NMSettingGeneve</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-geneve-get-df.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“df”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="NMSettingGeneve.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-SETTING-NAME:CAPS"></a><h3>NM_SETTING_GENEVE_SETTING_NAME</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_SETTING_NAME "geneve"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-ID:CAPS"></a><h3>NM_SETTING_GENEVE_ID</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_ID               "id"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-REMOTE:CAPS"></a><h3>NM_SETTING_GENEVE_REMOTE</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_REMOTE           "remote"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-DESTINATION-PORT:CAPS"></a><h3>NM_SETTING_GENEVE_DESTINATION_PORT</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_DESTINATION_PORT "destination-port"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-TOS:CAPS"></a><h3>NM_SETTING_GENEVE_TOS</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_TOS              "tos"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-TTL:CAPS"></a><h3>NM_SETTING_GENEVE_TTL</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_TTL              "ttl"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-GENEVE-DF:CAPS"></a><h3>NM_SETTING_GENEVE_DF</h3>
+<pre class="programlisting">#define NM_SETTING_GENEVE_DF               "df"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingGeneveDf"></a><h3>enum NMSettingGeneveDf</h3>
+<p><a class="link" href="NMSettingGeneve.html#NMSettingGeneveDf" title="enum NMSettingGeneveDf"><span class="type">NMSettingGeneveDf</span></a> values indicate how the Don't Fragment (DF) flag should be handled
+in the outer IP header of GENEVE tunnel packets.</p>
+<div class="refsect3">
+<a name="NMSettingGeneveDf.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-GENEVE-DF-UNSET:CAPS"></a>NM_SETTING_GENEVE_DF_UNSET</p></td>
+<td class="enum_member_description">
+<p>Don't set the DF flag, packets may be fragmented.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-GENEVE-DF-SET:CAPS"></a>NM_SETTING_GENEVE_DF_SET</p></td>
+<td class="enum_member_description">
+<p>Always set the DF flag, packets will not be fragmented.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-GENEVE-DF-INHERIT:CAPS"></a>NM_SETTING_GENEVE_DF_INHERIT</p></td>
+<td class="enum_member_description">
+<p>Inherit the DF flag from the inner IP header.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.58</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.36.1</div>
+</body>
+</html>

@@ -1,3 +1,18 @@
+network-manager (1.58.1-1+crquickshare2) UNRELEASED; urgency=medium
+
+  * Add credential-based independent P2P client activation with secret PSK
+    handling and session-scoped supplicant group credentials.
+
+ -- Local Development <local@localhost>  Thu, 15 Oct 2026 09:00:00 +0800
+
+network-manager (1.58.1-1+crquickshare1) UNRELEASED; urgency=medium
+
+  * Add an opt-in autonomous Wi-Fi Direct GO connection mode using the
+    wpa_supplicant backend and the standard NetworkManager activation lifecycle.
+  * Add an authorized group credential API and downstream libnm bindings.
+
+ -- Local Development <local@localhost>  Wed, 14 Oct 2026 23:40:00 +0800
+
 network-manager (1.58.1-1) unstable; urgency=medium
 
   * New upstream version 1.58.1

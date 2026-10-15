@@ -1,0 +1,68 @@
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Solving dependencies...
+The following packages were automatically installed and are no longer required:
+  libalgorithm-c3-perl libclass-c3-perl libclass-c3-xs-perl libclone-pp-perl
+  libdevel-globaldestruction-perl libdist-checkconflicts-perl
+  libeval-closure-perl libgrpc++1.51t64 libgrpc29t64 libipc-shareable-perl
+  liblog-dispatch-perl liblog-log4perl-perl libmro-compat-perl
+  libnamespace-autoclean-perl libngtcp2-crypto-ossl-dev libparams-util-perl
+  libparams-validationcompiler-perl libspecio-perl libstring-crc32-perl
+  perl-modules-5.40 python3-alabaster python3-appdirs python3-async-timeout
+  python3-backcall python3-beniget python3-blinker python3-brlapi
+  python3-colorama python3-distro-info python3-dnspython python3-entrypoints
+  python3-fs python3-gast python3-h11 python3-h2 python3-hpack
+  python3-httpcore python3-hyperframe python3-imagesize python3-inflect
+  python3-ipython-genutils python3-jaraco.text python3-jwt
+  python3-lazr.restfulclient python3-lazr.uri python3-louis python3-mdurl
+  python3-oauthlib python3-pickleshare python3-ply python3-py python3-pyatspi
+  python3-pyqt5.sip python3-pysimplesoap python3-pytz python3-roman
+  python3-setuptools-whl python3-snowballstemmer python3-typeguard
+  python3-wadllib python3-zmq qml6-module-qt-labs-qmlmodels qml6-module-qtqml
+  qml6-module-qtqml-models qml6-module-qtqml-workerscript squashfs-tools
+Use 'sudo apt autoremove' to remove them.
+The following packages will be upgraded:
+  gir1.2-nm-1.0 libnm-dev libnm0 network-manager network-manager-dev
+  network-manager-tui
+6 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Need to get 0 B/4123 kB of archives.
+After this operation, 45.1 kB of additional disk space will be used.
+Get:1 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/network-manager-tui_1.58.1-1+crquickshare1_amd64.deb network-manager-tui amd64 1.58.1-1+crquickshare1 [235 kB]
+Get:2 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/network-manager_1.58.1-1+crquickshare1_amd64.deb network-manager amd64 1.58.1-1+crquickshare1 [2306 kB]
+Get:3 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/libnm-dev_1.58.1-1+crquickshare1_amd64.deb libnm-dev amd64 1.58.1-1+crquickshare1 [774 kB]
+Get:4 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/libnm0_1.58.1-1+crquickshare1_amd64.deb libnm0 amd64 1.58.1-1+crquickshare1 [497 kB]
+Get:5 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/gir1.2-nm-1.0_1.58.1-1+crquickshare1_amd64.deb gir1.2-nm-1.0 amd64 1.58.1-1+crquickshare1 [85.4 kB]
+Get:6 /home/user/dev/chromium/src/network-manager-go/artifacts/debs/network-manager-dev_1.58.1-1+crquickshare1_all.deb network-manager-dev all 1.58.1-1+crquickshare1 [225 kB]
+apt-listchanges: Reading changelogs...
+debconf: unable to initialize frontend: Dialog
+debconf: (Dialog frontend will not work on a dumb terminal, an emacs shell buffer, or without a controlling terminal.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 514959 files and directories currently installed.)
+Preparing to unpack .../0-network-manager-tui_1.58.1-1+crquickshare1_amd64.deb ...
+Unpacking network-manager-tui (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Preparing to unpack .../1-network-manager_1.58.1-1+crquickshare1_amd64.deb ...
+Unpacking network-manager (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Preparing to unpack .../2-libnm-dev_1.58.1-1+crquickshare1_amd64.deb ...
+Unpacking libnm-dev:amd64 (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Preparing to unpack .../3-libnm0_1.58.1-1+crquickshare1_amd64.deb ...
+Unpacking libnm0:amd64 (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Preparing to unpack .../4-gir1.2-nm-1.0_1.58.1-1+crquickshare1_amd64.deb ...
+Unpacking gir1.2-nm-1.0:amd64 (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Preparing to unpack .../5-network-manager-dev_1.58.1-1+crquickshare1_all.deb ...
+Unpacking network-manager-dev (1.58.1-1+crquickshare1) over (1.58.1-1) ...
+Setting up libnm0:amd64 (1.58.1-1+crquickshare1) ...
+Setting up network-manager-dev (1.58.1-1+crquickshare1) ...
+Setting up gir1.2-nm-1.0:amd64 (1.58.1-1+crquickshare1) ...
+Setting up network-manager-tui (1.58.1-1+crquickshare1) ...
+Setting up network-manager (1.58.1-1+crquickshare1) ...
+Setting up libnm-dev:amd64 (1.58.1-1+crquickshare1) ...
+Processing triggers for man-db (2.13.1-1) ...
+Processing triggers for dbus (1.16.2-8) ...
+Processing triggers for libc-bin (2.43-7) ...

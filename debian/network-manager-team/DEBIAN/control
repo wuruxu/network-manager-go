@@ -1,0 +1,15 @@
+Package: network-manager-team
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 71
+Depends: libnm0 (= 1.58.1-1+crquickshare2), libc6 (>= 2.4), libglib2.0-0t64 (>= 2.42), libjansson4 (>= 2.14), libteamdctl0 (>= 1.9)
+Recommends: libteam-utils
+Breaks: network-manager (<< 1.56.0-3~)
+Replaces: network-manager (<< 1.56.0-3~)
+Section: net
+Priority: optional
+Homepage: https://networkmanager.dev/
+Description: Team device plugin for NetworkManager
+ This package contains NetworkManager support for team devices.

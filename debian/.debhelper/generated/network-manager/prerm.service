@@ -1,0 +1,10 @@
+# Automatically added by dh_installsystemd/14.5
+if [ -z "$DPKG_ROOT" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'NetworkManager.service' >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/14.5
+if [ -z "$DPKG_ROOT" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'NetworkManager-dispatcher.service' 'NetworkManager-wait-online.service' 'nm-priv-helper.service' >/dev/null || true
+fi
+# End automatically added section

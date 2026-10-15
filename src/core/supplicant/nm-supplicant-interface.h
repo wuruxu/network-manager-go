@@ -154,6 +154,8 @@ NMRefString *nm_supplicant_interface_get_current_bss(NMSupplicantInterface *self
 
 gint64 nm_supplicant_interface_get_last_scan(NMSupplicantInterface *self);
 
+int nm_supplicant_interface_get_ifindex(NMSupplicantInterface *self);
+
 const char *nm_supplicant_interface_get_ifname(NMSupplicantInterface *self);
 
 guint nm_supplicant_interface_get_max_scan_ssids(NMSupplicantInterface *self);
@@ -172,6 +174,14 @@ gboolean nm_supplicant_interface_get_p2p_assigned_addr(NMSupplicantInterface *se
 
 void nm_supplicant_interface_p2p_start_find(NMSupplicantInterface *self, guint timeout);
 void nm_supplicant_interface_p2p_stop_find(NMSupplicantInterface *self);
+
+gboolean nm_supplicant_interface_p2p_can_create_group(NMSupplicantInterface *self);
+void nm_supplicant_interface_p2p_group_add(NMSupplicantInterface *self,
+                                         guint32 frequency,
+                                         GCancellable *cancellable,
+                                         GAsyncReadyCallback callback,
+                                         gpointer user_data);
+GVariant *nm_supplicant_interface_p2p_group_credentials(NMSupplicantInterface *self);
 
 void nm_supplicant_interface_p2p_connect(NMSupplicantInterface *self,
                                          const char            *peer,
@@ -197,5 +207,9 @@ void nm_supplicant_interface_cancel_wps(NMSupplicantInterface *self);
 NMSupplicantAuthState nm_supplicant_interface_get_auth_state(NMSupplicantInterface *self);
 
 void nm_supplicant_interface_set_bridge(NMSupplicantInterface *self, const char *bridge);
+
+void nm_supplicant_interface_p2p_join_credentials(NMSupplicantInterface *self,
+    GBytes *ssid, const char *psk, guint32 frequency, GCancellable *cancellable,
+    GAsyncReadyCallback callback, gpointer user_data);
 
 #endif /* __NM_SUPPLICANT_INTERFACE_H__ */

@@ -1,0 +1,16 @@
+gir1.2-nm-1.0_1.58.1-1+crquickshare2_amd64.deb introspection optional
+libnm-dev_1.58.1-1+crquickshare2_amd64.deb libdevel optional
+libnm0-dbgsym_1.58.1-1+crquickshare2_amd64.deb debug optional automatic=yes
+libnm0_1.58.1-1+crquickshare2_amd64.deb libs optional
+network-manager-config-connectivity-debian_1.58.1-1+crquickshare2_all.deb net optional
+network-manager-dbgsym_1.58.1-1+crquickshare2_amd64.deb debug optional automatic=yes
+network-manager-dev_1.58.1-1+crquickshare2_all.deb devel optional
+network-manager-l10n_1.58.1-1+crquickshare2_all.deb localization optional
+network-manager-ovs-dbgsym_1.58.1-1+crquickshare2_amd64.deb debug optional automatic=yes
+network-manager-ovs_1.58.1-1+crquickshare2_amd64.deb net optional
+network-manager-team-dbgsym_1.58.1-1+crquickshare2_amd64.deb debug optional automatic=yes
+network-manager-team_1.58.1-1+crquickshare2_amd64.deb net optional
+network-manager-tui-dbgsym_1.58.1-1+crquickshare2_amd64.deb debug optional automatic=yes
+network-manager-tui_1.58.1-1+crquickshare2_amd64.deb net optional
+network-manager_1.58.1-1+crquickshare2_amd64.buildinfo net optional
+network-manager_1.58.1-1+crquickshare2_amd64.deb net optional

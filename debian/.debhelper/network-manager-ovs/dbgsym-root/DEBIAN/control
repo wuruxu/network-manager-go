@@ -1,0 +1,12 @@
+Package: network-manager-ovs-dbgsym
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 193
+Depends: network-manager-ovs (= 1.58.1-1+crquickshare2)
+Section: debug
+Priority: optional
+Description: debug symbols for network-manager-ovs
+Build-Ids: 40ffc02af47dbfe91892bef18648a810f339a3ff

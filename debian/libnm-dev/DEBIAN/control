@@ -1,0 +1,20 @@
+Package: libnm-dev
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 11659
+Depends: libnm0 (= 1.58.1-1+crquickshare2), libglib2.0-dev, gir1.2-gio-2.0-dev, gir1.2-nm-1.0 (= 1.58.1-1+crquickshare2)
+Provides: gir1.2-nm-1.0-dev (= 1.58.1-1+crquickshare2)
+Section: libdevel
+Priority: optional
+Multi-Arch: same
+Homepage: https://networkmanager.dev/
+Description: GObject-based client library for NetworkManager (development files)
+ NetworkManager is a system network service that manages your network devices
+ and connections, attempting to keep active network connectivity when
+ available. It manages ethernet, Wi-Fi, mobile broadband (WWAN), and PPPoE
+ devices, and provides VPN integration with a variety of different VPN
+ services.
+ .
+ This package contains header and development files.

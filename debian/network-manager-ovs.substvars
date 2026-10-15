@@ -1,0 +1,1 @@
+shlibs:Depends=libc6 (>= 2.14), libglib2.0-0t64 (>= 2.58.0), libjansson4 (>= 2.14)

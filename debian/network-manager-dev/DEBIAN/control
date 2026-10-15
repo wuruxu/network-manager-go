@@ -1,0 +1,14 @@
+Package: network-manager-dev
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Architecture: all
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 2623
+Section: devel
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://networkmanager.dev/
+Description: network management framework (development files)
+ This package provides documentation of the NetworkManager D-Bus API, the
+ configuration formats and command line utilities.
+ It also provides D-Bus introspection files.

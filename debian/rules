@@ -8,6 +8,8 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto
 
 export PYTHON=/usr/bin/python3
 
+AUTONINJA ?= autoninja
+
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:
@@ -59,6 +61,11 @@ override_dh_auto_configure:
 		-Dnbft=false \
 		-Dofono=true
 
+override_dh_auto_build:
+	# Keep autoninja on the local Ninja backend for this Meson build.
+	printf 'use_siso = false\nuse_remoteexec = false\n' > obj-$(DEB_HOST_GNU_TYPE)/args.gn
+	$(AUTONINJA) -C obj-$(DEB_HOST_GNU_TYPE) -j8
+
 execute_before_dh_auto_build:
 	# Current blhc complains about various hardening options not passed to
 	# bpf-gcc. But bpf-gcc does not support some of them (-fstack-protector
@@ -76,6 +83,12 @@ execute_after_dh_auto_install:
 	rm -f debian/tmp/usr/lib/systemd/system/NetworkManager-wait-online-initrd.service
 	rm -f debian/tmp/usr/lib/systemd/system/NetworkManager-initrd.service
 	rm -f debian/tmp/usr/lib/systemd/system-generators/nm-initrd-generator.sh
+
+override_dh_girepository:
+	LD_LIBRARY_PATH=$(CURDIR)/debian/libnm0/usr/lib/$(DEB_HOST_MULTIARCH):/usr/lib/$(DEB_HOST_MULTIARCH) dh_girepository
+
+override_dh_shlibdeps:
+	dh_shlibdeps -- -l$(CURDIR)/debian/libnm0/usr/lib/$(DEB_HOST_MULTIARCH) -l/usr/lib/$(DEB_HOST_MULTIARCH)
 
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/

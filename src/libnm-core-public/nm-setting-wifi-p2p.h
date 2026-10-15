@@ -36,6 +36,12 @@ G_BEGIN_DECLS
 #define NM_SETTING_WIFI_P2P_PEER       "peer"
 #define NM_SETTING_WIFI_P2P_WPS_METHOD "wps-method"
 #define NM_SETTING_WIFI_P2P_WFD_IES    "wfd-ies"
+#define NM_SETTING_WIFI_P2P_AUTONOMOUS "autonomous"
+#define NM_SETTING_WIFI_P2P_FREQUENCY  "frequency"
+#define NM_SETTING_WIFI_P2P_CLIENT "client"
+#define NM_SETTING_WIFI_P2P_SSID "ssid"
+#define NM_SETTING_WIFI_P2P_PSK "psk"
+#define NM_SETTING_WIFI_P2P_PSK_FLAGS "psk-flags"
 
 typedef struct _NMSettingWifiP2PClass NMSettingWifiP2PClass;
 
@@ -53,6 +59,15 @@ NMSettingWirelessSecurityWpsMethod nm_setting_wifi_p2p_get_wps_method(NMSettingW
 
 NM_AVAILABLE_IN_1_16
 GBytes *nm_setting_wifi_p2p_get_wfd_ies(NMSettingWifiP2P *setting);
+
+/* Downstream autonomous GO extension; not part of upstream 1.58 ABI. */
+gboolean nm_setting_wifi_p2p_get_autonomous(NMSettingWifiP2P *setting);
+guint32 nm_setting_wifi_p2p_get_frequency(NMSettingWifiP2P *setting);
+
+gboolean nm_setting_wifi_p2p_get_client(NMSettingWifiP2P *setting);
+GBytes *nm_setting_wifi_p2p_get_ssid(NMSettingWifiP2P *setting);
+const char *nm_setting_wifi_p2p_get_psk(NMSettingWifiP2P *setting);
+NMSettingSecretFlags nm_setting_wifi_p2p_get_psk_flags(NMSettingWifiP2P *setting);
 
 G_END_DECLS
 

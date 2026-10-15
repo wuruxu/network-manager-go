@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/x86_64-linux-gnu/NetworkManager/1.58.1/libnm-device-plugin-ovs.so
+debian/tmp/usr/lib/systemd/system/NetworkManager.service.d/NetworkManager-ovs.conf

@@ -15,6 +15,7 @@
 #include "libnm-core-intern/nm-core-internal.h"
 #include "libnm-glib-aux/nm-c-list.h"
 #include "libnm-glib-aux/nm-ref-string.h"
+#include "libnm-glib-aux/nm-secret-utils.h"
 #include "libnm-glib-aux/nm-dbus-aux.h"
 #include "libnm-std-aux/nm-dbus-compat.h"
 #include "nm-supplicant-config.h"
@@ -98,6 +99,11 @@ typedef struct _NMSupplicantInterfacePrivate {
     GCancellable *main_cancellable;
 
     NMRefString *p2p_group_path;
+    GBytes *p2p_group_ssid;
+    char *p2p_group_passphrase;
+    guint16 p2p_group_frequency;
+    gboolean p2p_config_known;
+    gboolean p2p_no_group_iface;
 
     GCancellable *p2p_group_properties_cancellable;
 
@@ -1164,6 +1170,8 @@ set_state_down(NMSupplicantInterface *self,
     nm_clear_g_cancellable(&priv->p2p_group_properties_cancellable);
 
     nm_clear_pointer(&priv->p2p_group_path, nm_ref_string_unref);
+    nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
+    nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
 
     _remove_network(self);
 
@@ -1518,10 +1526,31 @@ _p2p_group_properties_changed(NMSupplicantInterface *self, GVariant *properties)
     NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
     const char                   *s;
 
-    if (!properties)
+    if (!properties) {
         priv->p2p_group_owner_property = FALSE;
-    else if (g_variant_lookup(properties, "Role", "&s", &s))
-        priv->p2p_group_owner_property = nm_streq(s, "GO");
+        nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
+        nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
+        priv->p2p_group_frequency = 0;
+    } else {
+        gs_unref_variant GVariant *ssid = NULL;
+
+        if (g_variant_lookup(properties, "Role", "&s", &s))
+            priv->p2p_group_owner_property = nm_streq(s, "GO");
+        ssid = g_variant_lookup_value(properties, "SSID", G_VARIANT_TYPE("ay"));
+        if (ssid) {
+            gsize len;
+            const void *data = g_variant_get_fixed_array(ssid, &len, 1);
+            nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
+            if (len > 0 && len <= 32)
+                priv->p2p_group_ssid = g_bytes_new(data, len);
+        }
+        if (g_variant_lookup(properties, "Passphrase", "&s", &s)) {
+            nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
+            if (strlen(s) >= 8 && strlen(s) <= 63)
+                priv->p2p_group_passphrase = g_strdup(s);
+        }
+        g_variant_lookup(properties, "Frequency", "q", &priv->p2p_group_frequency);
+    }
 
     _notify_maybe_p2p_group(self);
 }
@@ -1595,6 +1624,10 @@ _p2p_group_set_path(NMSupplicantInterface *self, const char *path)
 
     nm_ref_string_unref(priv->p2p_group_path);
     priv->p2p_group_path = g_steal_pointer(&group_path);
+    priv->p2p_group_owner_property = FALSE;
+    nm_clear_pointer(&priv->p2p_group_ssid, g_bytes_unref);
+    nm_clear_pointer(&priv->p2p_group_passphrase, nm_free_secret);
+    priv->p2p_group_frequency = 0;
 
     if (priv->p2p_group_path) {
         priv->p2p_group_properties_cancellable = g_cancellable_new();
@@ -2065,6 +2098,15 @@ _properties_changed_p2p_device(NMSupplicantInterface *self, GVariant *properties
     const char                   *v_s;
 
     nm_assert(!properties || g_variant_is_of_type(properties, G_VARIANT_TYPE("a{sv}")));
+
+    if (properties) {
+        gs_unref_variant GVariant *config =
+            g_variant_lookup_value(properties, "P2PDeviceConfig", G_VARIANT_TYPE_VARDICT);
+        if (config) {
+            priv->p2p_config_known = TRUE;
+            g_variant_lookup(config, "NoGroupIface", "b", &priv->p2p_no_group_iface);
+        }
+    }
 
     if (nm_g_variant_lookup(properties, "Peers", "^a&o", &v_strv)) {
         NMSupplicantPeerInfo *peer_info;
@@ -2901,6 +2943,12 @@ nm_supplicant_interface_get_object_path(NMSupplicantInterface *self)
     return NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self)->object_path;
 }
 
+int
+nm_supplicant_interface_get_ifindex(NMSupplicantInterface *self)
+{
+    return NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self)->ifindex;
+}
+
 const char *
 nm_supplicant_interface_get_ifname(NMSupplicantInterface *self)
 {
@@ -2982,6 +3030,171 @@ nm_supplicant_interface_p2p_connect(NMSupplicantInterface *self,
                                  g_variant_new("(a{sv})", &builder),
                                  G_VARIANT_TYPE("(s)"),
                                  "p2p-connect");
+}
+
+gboolean
+nm_supplicant_interface_p2p_can_create_group(NMSupplicantInterface *self)
+{
+    NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
+
+    return priv->p2p_config_known && !priv->p2p_no_group_iface && !priv->p2p_group_path;
+}
+
+/* The caller owns the cancellable and handles errors in its activation state. */
+void
+nm_supplicant_interface_p2p_group_add(NMSupplicantInterface *self,
+                                     guint32 frequency,
+                                     GCancellable *cancellable,
+                                     GAsyncReadyCallback callback,
+                                     gpointer user_data)
+{
+    GVariantBuilder builder;
+
+    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&builder, "{sv}", "persistent", g_variant_new_boolean(FALSE));
+    if (frequency)
+        g_variant_builder_add(&builder, "{sv}", "frequency", g_variant_new_int32(frequency));
+    _dbus_connection_call(self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
+                          "GroupAdd", g_variant_new("(a{sv})", &builder),
+                          G_VARIANT_TYPE("()"), G_DBUS_CALL_FLAGS_NONE,
+                          DBUS_TIMEOUT_MSEC, cancellable, callback, user_data);
+}
+
+/* AddPersistentGroup is a session-scoped credential carrier. Never SaveConfig.
+ * Calls are deliberately not cancelled on the bus: we must obtain the object
+ * path and remove it even if activation was cancelled while the reply was in flight. */
+typedef struct {
+    GTask *task;
+    NMSupplicantInterface *self;
+    guint32 frequency;
+    char *path;
+    GError *error;
+} P2PClientJoin;
+
+static void
+p2p_client_remove_done(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    P2PClientJoin *join = user_data;
+    gs_unref_variant GVariant *reply = NULL;
+    gs_free_error GError *error = NULL;
+    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
+    if (!reply && !join->error)
+        join->error = g_steal_pointer(&error);
+    /* Device deactivation already queued Cancel after GroupAdd on this bus.
+     * Never cancel here: a newer activation may have started meanwhile. */
+    if (g_task_return_error_if_cancelled(join->task)) {
+    }
+    else if (join->error)
+        g_task_return_error(join->task, g_steal_pointer(&join->error));
+    else
+        g_task_return_boolean(join->task, TRUE);
+    g_clear_error(&join->error);
+    g_object_unref(join->task);
+    g_object_unref(join->self);
+    g_free(join->path);
+    g_free(join);
+}
+
+static void
+p2p_client_remove(P2PClientJoin *join)
+{
+    _dbus_connection_call(join->self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
+        "RemovePersistentGroup", g_variant_new("(o)", join->path), G_VARIANT_TYPE("()"),
+        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_remove_done, join);
+}
+
+static void
+p2p_client_group_done(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    P2PClientJoin *join = user_data;
+    gs_unref_variant GVariant *reply = NULL;
+    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &join->error);
+    p2p_client_remove(join);
+}
+
+static void
+p2p_client_add_done(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    P2PClientJoin *join = user_data;
+    gs_unref_variant GVariant *reply = NULL;
+    GVariantBuilder builder;
+    reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &join->error);
+    if (!reply) {
+        g_task_return_error(join->task, g_steal_pointer(&join->error));
+        g_object_unref(join->task);
+        g_object_unref(join->self);
+        g_free(join);
+        return;
+    }
+    g_variant_get(reply, "(o)", &join->path);
+    if (g_cancellable_is_cancelled(g_task_get_cancellable(join->task))) {
+        p2p_client_remove(join);
+        return;
+    }
+    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&builder, "{sv}", "persistent_group_object", g_variant_new_object_path(join->path));
+    if (join->frequency)
+        g_variant_builder_add(&builder, "{sv}", "frequency", g_variant_new_int32(join->frequency));
+    _dbus_connection_call(join->self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
+        "GroupAdd", g_variant_new("(a{sv})", &builder), G_VARIANT_TYPE("()"),
+        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_group_done, join);
+}
+
+void
+nm_supplicant_interface_p2p_join_credentials(NMSupplicantInterface *self,
+    GBytes *ssid, const char *psk, guint32 frequency, GCancellable *cancellable,
+    GAsyncReadyCallback callback, gpointer user_data)
+{
+    P2PClientJoin *join = g_new0(P2PClientJoin, 1);
+    GVariantBuilder builder;
+    gsize len;
+    const guint8 *data = g_bytes_get_data(ssid, &len);
+
+    join->self = g_object_ref(self);
+    join->task = g_task_new(self, cancellable, callback, user_data);
+    join->frequency = frequency;
+    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&builder, "{sv}", "ssid",
+        g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, data, len, 1));
+    g_variant_builder_add(&builder, "{sv}", "mode", g_variant_new_int32(0));
+    g_variant_builder_add(&builder, "{sv}", "key_mgmt", g_variant_new_string("WPA-PSK"));
+    if (strlen(psk) == 64) {
+        guint8 key[32];
+        guint i;
+        for (i = 0; i < 32; i++)
+            key[i] = (g_ascii_xdigit_value(psk[2 * i]) << 4) | g_ascii_xdigit_value(psk[2 * i + 1]);
+        g_variant_builder_add(&builder, "{sv}", "psk",
+            g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, key, sizeof(key), 1));
+        nm_explicit_bzero(key, sizeof(key));
+    } else
+        g_variant_builder_add(&builder, "{sv}", "psk", g_variant_new_string(psk));
+    _dbus_connection_call(self, NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
+        "AddPersistentGroup", g_variant_new("(a{sv})", &builder), G_VARIANT_TYPE("(o)"),
+        G_DBUS_CALL_FLAGS_NONE, DBUS_TIMEOUT_MSEC, NULL, p2p_client_add_done, join);
+}
+
+/* Credentials are intentionally not exported as GObject/D-Bus properties. */
+GVariant *
+nm_supplicant_interface_p2p_group_credentials(NMSupplicantInterface *self)
+{
+    NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
+    GVariantBuilder builder;
+    gsize len;
+    const void *ssid;
+
+    if (!priv->p2p_group_owner_cached || !priv->p2p_group_ssid
+        || !priv->p2p_group_passphrase || !priv->p2p_group_frequency)
+        return NULL;
+    ssid = g_bytes_get_data(priv->p2p_group_ssid, &len);
+    g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&builder, "{sv}", "ssid",
+                          g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, ssid, len, 1));
+    g_variant_builder_add(&builder, "{sv}", "passphrase",
+                          g_variant_new_string(priv->p2p_group_passphrase));
+    g_variant_builder_add(&builder, "{sv}", "frequency",
+                          g_variant_new_uint32(priv->p2p_group_frequency));
+    g_variant_builder_add(&builder, "{sv}", "interface", g_variant_new_string(priv->ifname));
+    return g_variant_ref_sink(g_variant_builder_end(&builder));
 }
 
 void

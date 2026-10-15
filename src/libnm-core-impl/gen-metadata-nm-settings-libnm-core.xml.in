@@ -2747,9 +2747,35 @@
     <setting name="wifi-p2p"
              gtype="NMSettingWifiP2P"
              >
+        <property name="autonomous"
+                  dbus-type="b"
+                  gprop-type="gboolean"
+                  />
+        <property name="client"
+                  dbus-type="b"
+                  gprop-type="gboolean"
+                  />
+        <property name="frequency"
+                  dbus-type="u"
+                  gprop-type="guint"
+                  />
         <property name="peer"
                   dbus-type="s"
                   gprop-type="gchararray"
+                  />
+        <property name="psk"
+                  is-secret="1"
+                  dbus-type="s"
+                  gprop-type="gchararray"
+                  />
+        <property name="psk-flags"
+                  is-secret-flags="1"
+                  dbus-type="u"
+                  gprop-type="NMSettingSecretFlags"
+                  />
+        <property name="ssid"
+                  dbus-type="ay"
+                  gprop-type="GBytes"
                   />
         <property name="wfd-ies"
                   dbus-type="ay"

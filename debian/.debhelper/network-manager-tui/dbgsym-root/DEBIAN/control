@@ -1,0 +1,12 @@
+Package: network-manager-tui-dbgsym
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 1412
+Depends: network-manager-tui (= 1.58.1-1+crquickshare2)
+Section: debug
+Priority: optional
+Description: debug symbols for network-manager-tui
+Build-Ids: f0cc30cd038a5de3c6f793be55e71c369ed54449

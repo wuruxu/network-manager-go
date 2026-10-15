@@ -1,0 +1,2 @@
+shlibs:Depends=libc6 (>= 2.38), libglib2.0-0t64 (>= 2.44.0), libnewt0.52 (>= 0.52.25), libnm0 (>= 1.58.0), libslang2 (>= 2.2.4)
+misc:Commands=nmtui, nmtui-connect, nmtui-edit, nmtui-hostname

@@ -2320,7 +2320,7 @@
     <setting name="wifi-p2p" >
         <property name="peer"
                   alias="peer"
-                  nmcli-description="The P2P device that should be connected to. Currently, this is the only way to create or join a group."
+                  nmcli-description="The P2P device that should be connected to. This is required for peer connections and must be unset when autonomous is TRUE."
                   format="MAC address" />
         <property name="wps-method"
                   nmcli-description="Flags indicating which mode of WPS is to be used. There&apos;s little point in changing the default setting as NetworkManager will automatically determine the best method to use."
@@ -2329,6 +2329,28 @@
         <property name="wfd-ies"
                   nmcli-description="The Wi-Fi Display (WFD) Information Elements (IEs) to set. Wi-Fi Display requires a protocol specific information element to be set in certain Wi-Fi frames. These can be specified here for the purpose of establishing a connection. This setting is only useful when implementing a Wi-Fi Display client."
                   format="bytes" />
+        <property name="client"
+                  nmcli-description="Join an existing group with SSID and PSK using a separate P2P client interface. Excludes autonomous GO, peer and WPS. Downstream extension."
+                  format="boolean"
+                  values="true/yes/on, false/no/off" />
+        <property name="ssid"
+                  nmcli-description="Raw SSID of the existing group, required in credential client mode."
+                  format="bytes" />
+        <property name="psk"
+                  nmcli-description="WPA passphrase or hexadecimal PSK for the existing group. Client only."
+                  format="string" />
+        <property name="psk-flags"
+                  nmcli-description="Secret handling flags for the group PSK."
+                  format="flags (NMSettingSecretFlags)"
+                  values="none (0x0), agent-owned (0x1), not-saved (0x2), not-required (0x4)" />
+        <property name="autonomous"
+                  nmcli-description="Create a non-persistent autonomous group owner without a peer. The group remains active when no clients are present, until the connection is deactivated. Uses the wpa_supplicant backend. Downstream 1.58.1 extension."
+                  format="boolean"
+                  values="true/yes/on, false/no/off" />
+        <property name="frequency"
+                  nmcli-description="Requested autonomous GO frequency in MHz. Zero follows the current station frequency when connected, otherwise lets supplicant choose. An explicit frequency conflicting with an active station is rejected. Also accepts an existing group frequency in credential client mode; zero scans for it. Downstream 1.58.1 extension."
+                  format="integer"
+                  values="0 - 7125" />
     </setting>
     <setting name="wimax" >
         <property name="mac-address"

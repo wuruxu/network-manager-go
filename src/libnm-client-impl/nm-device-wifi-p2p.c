@@ -282,6 +282,55 @@ get_type_description(NMDevice *device)
     return "wifi-p2p";
 }
 
+/**
+ * nm_device_wifi_p2p_get_group_credentials:
+ * @device: a #NMDeviceWifiP2P
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): completion callback
+ * @user_data: callback data
+ *
+ * Read credentials of an active autonomous GO using network-control authorization.
+ * Downstream extension. Do not log the returned passphrase.
+ */
+void
+nm_device_wifi_p2p_get_group_credentials(NMDeviceWifiP2P *device,
+                                        GCancellable *cancellable,
+                                        GAsyncReadyCallback callback,
+                                        gpointer user_data)
+{
+    g_return_if_fail(NM_IS_DEVICE_WIFI_P2P(device));
+    _nm_client_dbus_call(_nm_object_get_client(device), device,
+                         nm_device_wifi_p2p_get_group_credentials, cancellable,
+                         callback, user_data, _nm_object_get_path(device),
+                         NM_DBUS_INTERFACE_DEVICE_WIFI_P2P, "GetGroupCredentials",
+                         NULL, G_VARIANT_TYPE("(a{sv})"), G_DBUS_CALL_FLAGS_NONE,
+                         NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+                         nm_dbus_connection_call_finish_variant_strip_dbus_error_cb);
+}
+
+/**
+ * nm_device_wifi_p2p_get_group_credentials_finish:
+ * @device: a #NMDeviceWifiP2P
+ * @result: asynchronous result
+ * @error: return location for an error
+ *
+ * Returns: (transfer full): a credential dictionary (a{sv}), or NULL on error.
+ * Downstream extension. Caller must not publish or log its passphrase.
+ */
+GVariant *
+nm_device_wifi_p2p_get_group_credentials_finish(NMDeviceWifiP2P *device,
+                                               GAsyncResult *result,
+                                               GError **error)
+{
+    gs_unref_variant GVariant *reply = NULL;
+
+    g_return_val_if_fail(NM_IS_DEVICE_WIFI_P2P(device), NULL);
+    g_return_val_if_fail(nm_g_task_is_valid(result, device,
+                         nm_device_wifi_p2p_get_group_credentials), NULL);
+    reply = g_task_propagate_pointer(G_TASK(result), error);
+    return reply ? g_variant_get_child_value(reply, 0) : NULL;
+}
+
 /*****************************************************************************/
 
 static void

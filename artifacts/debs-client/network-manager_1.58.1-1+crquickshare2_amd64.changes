@@ -1,0 +1,77 @@
+Format: 1.8
+Date: Thu, 15 Oct 2026 09:00:00 +0800
+Source: network-manager
+Binary: gir1.2-nm-1.0 libnm-dev libnm0 libnm0-dbgsym network-manager network-manager-config-connectivity-debian network-manager-dbgsym network-manager-dev network-manager-l10n network-manager-ovs network-manager-ovs-dbgsym network-manager-team network-manager-team-dbgsym network-manager-tui network-manager-tui-dbgsym
+Architecture: amd64 all
+Version: 1.58.1-1+crquickshare2
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Changed-By: Local Development <local@localhost>
+Description:
+ gir1.2-nm-1.0 - GObject introspection data for the libnm library
+ libnm-dev  - GObject-based client library for NetworkManager (development file
+ libnm0     - GObject-based client library for NetworkManager
+ network-manager - network management framework (daemon and userspace tools)
+ network-manager-config-connectivity-debian - NetworkManager configuration to enable connectivity checking
+ network-manager-dev - network management framework (development files)
+ network-manager-l10n - network management framework (translation files)
+ network-manager-ovs - Open vSwitch device plugin for NetworkManager
+ network-manager-team - Team device plugin for NetworkManager
+ network-manager-tui - NetworkManager curses-based UI
+Changes:
+ network-manager (1.58.1-1+crquickshare2) UNRELEASED; urgency=medium
+ .
+   * Add credential-based independent P2P client activation with secret PSK
+     handling and session-scoped supplicant group credentials.
+Checksums-Sha1:
+ 4c3b27bf5ab1ca0a66efb4600718c9b2006ecf28 85572 gir1.2-nm-1.0_1.58.1-1+crquickshare2_amd64.deb
+ fb4c11a670848a25867d8cdf00be6ac9f5f1b106 774916 libnm-dev_1.58.1-1+crquickshare2_amd64.deb
+ 1eeab245aca22d561c6c25c5bfa9ade9e7414ad4 3761284 libnm0-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 8d0e2474b022cc92ad6859baae3daf1f70fce18e 497740 libnm0_1.58.1-1+crquickshare2_amd64.deb
+ 447659b46932589e2d8870ffafe9413ba83b00be 9432 network-manager-config-connectivity-debian_1.58.1-1+crquickshare2_all.deb
+ 63a1d41606a2a146ca0d2130125955eb2ebc5fcc 13861972 network-manager-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ a037eabd5cdec3d057ba05afb9abe19576c11b6f 224980 network-manager-dev_1.58.1-1+crquickshare2_all.deb
+ d8d4321e71ec43bc7bdbf74b4f0b027aa1a8e459 1493220 network-manager-l10n_1.58.1-1+crquickshare2_all.deb
+ b831af06ea9923fe5f0753be5ee24dc405a5712b 171080 network-manager-ovs-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 99fe1f3b6b31bf69762092b2e7287202965e11ac 43352 network-manager-ovs_1.58.1-1+crquickshare2_amd64.deb
+ 5d22a3f9078f808c91ac5c5222e9dbd7c4d0a2a1 73176 network-manager-team-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 04e6e71f79fea2d06c8f1e3315205bc538e3088e 25464 network-manager-team_1.58.1-1+crquickshare2_amd64.deb
+ 551da48006121c18d4d3b2e4f01f9a1f2fc5a8ea 1028740 network-manager-tui-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ f9d49f20a8e071d2f3591ac1b855388194097063 234744 network-manager-tui_1.58.1-1+crquickshare2_amd64.deb
+ dd0445d1045267ccecf50d86891d39ee5b6bd483 16001 network-manager_1.58.1-1+crquickshare2_amd64.buildinfo
+ a08ef26fb532106780b3b043ef93c540a7cdacea 2309356 network-manager_1.58.1-1+crquickshare2_amd64.deb
+Checksums-Sha256:
+ 94fd83832caaf8c144ad414d5349473cd40206cfc5458e8cb23b4ec08da8239b 85572 gir1.2-nm-1.0_1.58.1-1+crquickshare2_amd64.deb
+ 329d0c2d5499d9a398536ec8cbeb2afb3fff56200e2c80e2a37261392b01c17e 774916 libnm-dev_1.58.1-1+crquickshare2_amd64.deb
+ 0052731a0492bb2e048f8a1d55ccfddfe444322a6b3aab161d12dbbc1a0970c3 3761284 libnm0-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 1c08f35ecbde1ab2e59f3ad4b467417c2bddc8dbdb504661435e47d406040aab 497740 libnm0_1.58.1-1+crquickshare2_amd64.deb
+ 1f1dcac8d9fcbc413cdc3a5e01209472dbb7f855963187bc3f10b1d9293efad1 9432 network-manager-config-connectivity-debian_1.58.1-1+crquickshare2_all.deb
+ f00e5b0a79e00422d735756d81d3b688bbcef9e1b2a05a951b844033a73e5afd 13861972 network-manager-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ fa476228db33c4b84193827f34709b0bf321a4290bb7fb749a00f9ebdeae6865 224980 network-manager-dev_1.58.1-1+crquickshare2_all.deb
+ 28dfaa23b01f070e2b8d6c7f5ad3ce68931b46ed0243edda9f5c08340ed6289e 1493220 network-manager-l10n_1.58.1-1+crquickshare2_all.deb
+ bf5b53b5ede0420df81af37c2bc5207f10cc49bde7781d6ea4336f577548b482 171080 network-manager-ovs-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ c91201c7a64b2f76ff4278f95f1d496c9ab6dd9efc16c3ec0514ba758f9353fa 43352 network-manager-ovs_1.58.1-1+crquickshare2_amd64.deb
+ 5acf1c8aec13218f3161fcbeeabc8f5f0b8f6a3e9e4c9ad37896fd12e4343003 73176 network-manager-team-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 7ec9f7038bb18828cfc5156c44c0d6462705227a8853449fbe562c4bc565b778 25464 network-manager-team_1.58.1-1+crquickshare2_amd64.deb
+ 46ccb96d959eca611c6e0a3de649004f2779247fc0a5d510ded937eec42247f1 1028740 network-manager-tui-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ da446e1d5e9b0b9779b768fb70a11ec6907914cfec850f4ee74687cec858ad60 234744 network-manager-tui_1.58.1-1+crquickshare2_amd64.deb
+ 7915a67e3c390c97bd16cbb03ca3a7ddbdee0702235777d39ecf30aa5a11e868 16001 network-manager_1.58.1-1+crquickshare2_amd64.buildinfo
+ 3cc772e818b9a7df86cc5eedd98999cef5683d05d34a673e94aa37ca5cff239a 2309356 network-manager_1.58.1-1+crquickshare2_amd64.deb
+Files:
+ 014de6000416509d47a7d4693c055a01 85572 introspection optional gir1.2-nm-1.0_1.58.1-1+crquickshare2_amd64.deb
+ 251296583f3fdd71c616964a6d1d2174 774916 libdevel optional libnm-dev_1.58.1-1+crquickshare2_amd64.deb
+ 6812da24e7ddcec468e3276f291c6c7c 3761284 debug optional libnm0-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 12098680e1659b23a604c7dcd6a9eb6a 497740 libs optional libnm0_1.58.1-1+crquickshare2_amd64.deb
+ ff292ec75fdf4a2d2cc762c5c7a8e5d8 9432 net optional network-manager-config-connectivity-debian_1.58.1-1+crquickshare2_all.deb
+ b7a17272eeb41d396387689cbfefe4d5 13861972 debug optional network-manager-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ ba7fab5e2f0084749cf5e9bff0a5d2fe 224980 devel optional network-manager-dev_1.58.1-1+crquickshare2_all.deb
+ 642719e2799edbaff986f55d68c9c41b 1493220 localization optional network-manager-l10n_1.58.1-1+crquickshare2_all.deb
+ d4227b27b0fd255201a69c38a4d4c832 171080 debug optional network-manager-ovs-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ a21a2a4075a9c2bf8fcc486fc9d1a2ef 43352 net optional network-manager-ovs_1.58.1-1+crquickshare2_amd64.deb
+ aafa64473d937618cbf1e042d1c28b5f 73176 debug optional network-manager-team-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ 1e9127352c536e1c17bf5272f1a3ebd3 25464 net optional network-manager-team_1.58.1-1+crquickshare2_amd64.deb
+ ec4f40e245a2ffbb2aa60828d86842c7 1028740 debug optional network-manager-tui-dbgsym_1.58.1-1+crquickshare2_amd64.deb
+ b4c69e2fc76b54aa91f3902e1fc96df6 234744 net optional network-manager-tui_1.58.1-1+crquickshare2_amd64.deb
+ fff402d92dfa3a5f6a8f3bb7fa728ebb 16001 net optional network-manager_1.58.1-1+crquickshare2_amd64.buildinfo
+ efa1de2fa7ff1347faa8e805e41eced9 2309356 net optional network-manager_1.58.1-1+crquickshare2_amd64.deb

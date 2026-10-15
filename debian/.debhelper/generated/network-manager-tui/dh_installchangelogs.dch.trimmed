@@ -1,0 +1,599 @@
+network-manager (1.58.1-1+crquickshare2) UNRELEASED; urgency=medium
+
+  * Add credential-based independent P2P client activation with secret PSK
+    handling and session-scoped supplicant group credentials.
+
+ -- Local Development <local@localhost>  Thu, 15 Oct 2026 09:00:00 +0800
+
+network-manager (1.58.1-1+crquickshare1) UNRELEASED; urgency=medium
+
+  * Add an opt-in autonomous Wi-Fi Direct GO connection mode using the
+    wpa_supplicant backend and the standard NetworkManager activation lifecycle.
+  * Add an authorized group credential API and downstream libnm bindings.
+
+ -- Local Development <local@localhost>  Wed, 14 Oct 2026 23:40:00 +0800
+
+network-manager (1.58.1-1) unstable; urgency=medium
+
+  * New upstream version 1.58.1
+  * Fix test suite failure with glib 2.89.
+    Thanks to Simon McVittie (Closes: #1145695)
+  * Fix clat/eBPF compilation on ppc64 and sparc64 (Closes: #1145004)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 02 Sep 2026 14:46:44 +0200
+
+network-manager (1.58.0-3) experimental; urgency=medium
+
+  [ Witold Baryluk ]
+  * Enable CLAT (464XLAT) support, compile bpf program with gcc-bpf,
+    and do stripping with bpftool. The CLAT usage in version 1.58
+    remains disabled at runtime by default.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 15 Aug 2026 20:59:00 +0200
+
+network-manager (1.58.0-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 22 Jul 2026 19:01:52 +0200
+
+network-manager (1.58.0-1) experimental; urgency=medium
+
+  * New upstream version 1.58.0
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 20 Jul 2026 17:48:03 +0200
+
+network-manager (1.58~rc1-1) experimental; urgency=medium
+
+  * New upstream version 1.58~rc1
+  * Stop building with Wireless Extensions support.
+    This feature is deprecated and scheduled to be removed in a future
+    release.
+  * Stop setting systemdsystemunitdir explicitly.
+    Instead rely on systemd.pc (provided by systemd-dev) to get this path.
+  * Remove nm-initrd-generator.sh systemd generator.
+    We are not using the initrd units, so we don't need that systemd
+    generator either.
+  * Update symbols file for libnm0
+  * Update debhelper-compat to 14
+  * Disable CLAT (464XLAT) support.
+    This is a new feature requiring BPF support.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 03 Jul 2026 21:17:08 +0200
+
+network-manager (1.56.1-1) unstable; urgency=medium
+
+  * New upstream version 1.56.1
+  * Bump Standards-Version to 4.7.4
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 May 2026 22:14:33 +0200
+
+network-manager (1.56.0-7) unstable; urgency=medium
+
+  * Fix typo in changelog wrt OVS availability on 64 bit architectures
+  * Bump network-manager-tui to Recommends.
+    This way it will be installed automatically on upgrades for default
+    installations in forky. In later releases the dependency will be demoted
+    to a Suggests again.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 01 May 2026 22:56:13 +0200
+
+network-manager (1.56.0-6) unstable; urgency=medium
+
+  * Rework package description for network-manager-tui.
+    Explicitly mention nmtui in the long description.
+    See #1132248
+  * Downgrade openvswitch-switch Depends to Recommends.
+    The openvswitch-switch package is only available on 64 bit
+    architectures, so a hard Depends prevents testing migration.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 04 Apr 2026 18:55:21 +0200
+
+network-manager (1.56.0-5) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 25 Mar 2026 22:06:18 +0100
+
+network-manager (1.56.0-4) experimental; urgency=medium
+
+  * Split off nmtui into network-manager-tui.
+    To further reduce shlibs dependencies of the main network-manager (i.e.
+    getting rid of libnewt) and to reduce the on-disk footprint, split off
+    the nmtui binary into a separate package named network-manager-tui.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 19:49:02 +0100
+
+network-manager (1.56.0-3) experimental; urgency=medium
+
+  [ Luca Boccassi ]
+  * Install and use sysusers.d config file
+    sysusers.d config files allow a package to use declarative configuration
+    instead of manually written maintainer scripts.
+    This also allows image-based systems to be created with /usr/ only, and
+    also allows for factory resetting a system and recreating /etc/ on boot.
+    https://www.freedesktop.org/software/systemd/man/latest/sysusers.d.html
+
+  [ Michael Biebl ]
+  * Tweak package description and dependencies for network-manager-ovs
+  * Split off support for team devices.
+    Support for team devices is a rarely used feature.
+    Ship it in a separate package named network-manager-team.
+    This reduces the dependency chain of the main network-manager package
+    (removes libjansson and libteamdctl) and also reduces the runtime
+    footprint.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Mar 2026 17:36:26 +0100
+
+network-manager (1.56.0-2) experimental; urgency=medium
+
+  * Enable Open vSwitch (OVS) support.
+    This includes a drop-in config for NetworkManager.service which changes
+    its ordering. So ship the plugin in a separate package named
+    network-manager-ovs. (Closes: #1127478)
+  * Build-Depend on libselinux-dev instead of libselinux1-dev.
+    See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=966687
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Feb 2026 15:05:52 +0100
+
+network-manager (1.56.0-1) experimental; urgency=medium
+
+  * New upstream version 1.56.0
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 22 Feb 2026 00:53:01 +0100
+
+network-manager (1.54.3-2) unstable; urgency=medium
+
+  [ Max Nikulin ]
+  * Add nftables to as a preferred alternative to iptables
+
+  [ Michael Biebl ]
+  * Do not ship initrd specific services.
+    Those systemd services are meant for the initrd but are not actually
+    used by dracut (yet). They conflict with the main services and can lead
+    to potentially confusing error messages. So remove them for now.
+    (Closes: #1117732)
+  * Drop redundant Priority and Rules-Requires-Root field
+  * Bump Standards-Version to 4.7.3
+  * Drop no longer needed migration code from pre-oldstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 09 Feb 2026 12:02:29 +0100
+
+network-manager (1.54.3-1) unstable; urgency=medium
+
+  * New upstream version 1.54.3
+    - Avoid that non-admin users can use other users'
+      certificates. (CVE-2025-9615)
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 13 Dec 2025 14:36:27 +0100
+
+network-manager (1.54.2-3) unstable; urgency=medium
+
+  * Drop Build-Depends on polkitd.
+    The polkit.its gettext extension, which is required during build, was
+    moved from polkitd to libpolkit-gobject-1-dev.
+    There is already a Build-Depends on the latter, so polkitd can be
+    dropped safely.
+  * Replace dbus Build-Depends with dbus-daemon.
+    The test-suite that is run as part of dh_auto_test only needs
+    dbus-run-session, which is part of the dbus-daemon package.
+    Replace dbus with dbus-daemon, as it has a smaller dependency tree and
+    doesn't interfere with alternatives like dbus-broker. (Closes: #1122686)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 12 Dec 2025 13:45:04 +0100
+
+network-manager (1.54.2-2) unstable; urgency=medium
+
+  * Fix dhcpcd build option.
+    The intended build option "false" did not actually disable it as
+    expected, so use "no" instead.
+    Thanks to John Scott (Closes: #1121101)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 21 Nov 2025 18:31:01 +0100
+
+network-manager (1.54.2-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 1.54.2
+  * Rebase patches
+  * Update symbols file for libnm0
+
+  [ Jeremy Bícha ]
+  * Remove unnecessary Build-Depends: gir1.2-girepository-2.0.
+    NetworkManager does not explicitly import GIRepository since 1.54.0.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 17 Nov 2025 21:46:05 +0100
+
+network-manager (1.54.1-1) unstable; urgency=medium
+
+  * New upstream version 1.54.1
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 12 Sep 2025 20:06:06 +0200
+
+network-manager (1.54.0-4) unstable; urgency=medium
+
+  * Rename debian-branch to debian/latest as per DEP-14
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 15 Aug 2025 21:35:54 +0200
+
+network-manager (1.54.0-3) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 11 Aug 2025 23:01:53 +0200
+
+network-manager (1.54.0-2) experimental; urgency=medium
+
+  * Increase test timeouts by a factor of two.
+    This should help slower architectures like hppa. (Closes: #1075915)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 05 Aug 2025 12:59:46 +0200
+
+network-manager (1.54.0-1) experimental; urgency=medium
+
+  * New upstream version 1.54.0
+  * Rebase patches
+  * Disable NBFT support in the initrd generator.
+    The nm-initrd-generator is not really hooked up in Debian and enabling
+    NBFT support would drap in additional dependencies like NVME.
+    So disable support for this feature until there is actual demand for it.
+  * Update symbols file for libm0
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 04 Aug 2025 14:58:52 +0200
+
+network-manager (1.52.1-1) unstable; urgency=medium
+
+  * New upstream version 1.52.1
+  * Explicitly specify the path for ip6tables
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 15 Jul 2025 12:21:02 +0200
+
+network-manager (1.52.0-6) unstable; urgency=medium
+
+  [ Lukas Märdian ]
+  * d/tests: Add initial autopkgtests
+  * d/t/base.py: Install backup mgmt network in /run/systemd/network/
+  * d/t/base.py: Overmount /run/network/ to isolate tests from ifupdown & ifstate
+  * d/t/base.py: decrease huge nm-online timeouts
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 25 Mar 2025 18:33:40 +0100
+
+network-manager (1.52.0-5) unstable; urgency=medium
+
+  [ Sicelo A. Mhlongo ]
+  * Enable support for ofono
+
+  [ Michael Biebl ]
+  * Stop setting the build system explicitly.
+    It is no longer necessary as upstream has removed the build system based
+    on autotools and only supports the Meson based one.
+  * Bump Standards-Version to 4.7.2
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 15 Mar 2025 20:39:47 +0100
+
+network-manager (1.52.0-4) unstable; urgency=medium
+
+  * No change source-only upload
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 08 Mar 2025 21:11:39 +0100
+
+network-manager (1.52.0-3) unstable; urgency=medium
+
+  * Split translations into a separate package named network-manager-l10n.
+    The translations make up more than 50% of the disk footprint.
+    To make network-manager more suitable for minimal environments, split
+    the translations into a separate package named network-manager-l10n and
+    make network-manager recommend this new package. This means that
+    translations will still be installed by default but they can be omitted
+    if desired.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 08 Mar 2025 16:51:47 +0100
+
+network-manager (1.52.0-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 01 Mar 2025 22:34:37 +0100
+
+network-manager (1.52.0-1) experimental; urgency=medium
+
+  * New upstream version 1.52.0
+  * Rebase patches
+  * Bump 1.51.90 symbol versions to 1.52.0 for the final release
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 28 Feb 2025 18:58:44 +0100
+
+network-manager (1.51.90-1) experimental; urgency=medium
+
+  * New upstream version 1.51.90 (1.52 rc1)
+  * Drop obsolete build option
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 12 Feb 2025 14:39:07 +0100
+
+network-manager (1.50.3-1) unstable; urgency=medium
+
+  * New upstream version 1.50.3
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 27 Feb 2025 22:46:25 +0100
+
+network-manager (1.50.2-1) unstable; urgency=medium
+
+  * New upstream version 1.50.2
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 20 Jan 2025 19:14:11 +0100
+
+network-manager (1.50.1-1) unstable; urgency=medium
+
+  * New upstream version 1.50.1
+  * Update debian/watch.
+    Switch to new download location at gitlab.freedesktop.org.
+    Use tarballs without pre-generated documentation. We rebuild them
+    anyway. (Closes: #1091414)
+  * Rebase patches
+  * Drop now unused lintian override for source-is-missing.
+    As we no longer use a tarball with pre-generated documentation, this
+    (false) lintian warning no longer triggers.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 25 Dec 2024 21:01:45 +0100
+
+network-manager (1.50.0-1) unstable; urgency=medium
+
+  * New upstream version 1.50.0
+  * Bump 1.49.90 symbol versions to 1.50.0 for the final release
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 02 Oct 2024 22:33:16 +0200
+
+network-manager (1.49.91-1) unstable; urgency=medium
+
+  * New upstream version 1.49.91 (1.50 rc2)
+  * Demote polkitd and udev to Recommends
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 24 Sep 2024 18:20:33 +0200
+
+network-manager (1.49.90-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Sep 2024 18:03:55 +0200
+
+network-manager (1.49.90-1) experimental; urgency=medium
+
+  * New upstream version 1.49.90 (1.50 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Stop enabling support for dhclient.
+    This feature has been marked deprecated and is scheduled to be removed
+    in a future release.
+  * Update Homepage URL (Closes: #1080304)
+  * Update README.Debian (Closes: #864339)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Sep 2024 19:56:26 +0200
+
+network-manager (1.48.10-1) unstable; urgency=medium
+
+  * New upstream version 1.48.10
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 26 Aug 2024 16:35:44 +0200
+
+network-manager (1.48.8-1) unstable; urgency=medium
+
+  * New upstream version 1.48.8
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 09 Aug 2024 20:53:23 +0200
+
+network-manager (1.48.6-1) unstable; urgency=medium
+
+  * New upstream version 1.48.6
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 26 Jul 2024 15:21:36 +0200
+
+network-manager (1.48.4-1) unstable; urgency=medium
+
+  * New upstream version 1.48.4
+  * Enable standard Salsa CI
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 05 Jul 2024 19:10:23 +0200
+
+network-manager (1.48.2-1) unstable; urgency=medium
+
+  * New upstream version 1.48.2
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 24 Jun 2024 15:02:02 +0200
+
+network-manager (1.48.0-1) unstable; urgency=medium
+
+  * New upstream version 1.48.0
+  * Drop automake Build-Depends, no longer needed after the switch to Meson
+  * Bump 1.47.90 symbol versions to 1.48.0 for the final release
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 31 May 2024 23:20:43 +0200
+
+network-manager (1.47.91-1) unstable; urgency=medium
+
+  * New upstream version 1.47.91 (1.48 rc2)
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 17 May 2024 12:58:33 +0200
+
+network-manager (1.47.90-2) experimental; urgency=medium
+
+  * Switch to Meson as build system
+  * Add libdbus-1-dev to Build-Depends.
+    Required for getting datadir, interfaces_dir and
+    system_bus_services_dir.
+  * Add libpolkit-gobject-1-dev to Build-Depends.
+    Required for getting policydir.
+  * Add mobile-broadband-provider-info to Build-Depends.
+    Required for getting database path.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 12 May 2024 22:22:41 +0200
+
+network-manager (1.47.90-1) experimental; urgency=medium
+
+  * New upstream version 1.47.90 (1.48 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 May 2024 00:18:50 +0200
+
+network-manager (1.46.0-2) unstable; urgency=medium
+
+  * Drop alternative Depends on obsolete policykit-1 package.
+    It is no longer needed for backports as stable has a version of polkitd
+    now. (Closes: #1069636)
+  * Bump Standards-Version to 4.7.0
+  * Add explicit Build-Depends on gir1.2-gio-2.0-dev
+  * Drop Build-Depends on libgirepository1.0-dev.
+    No longer necessary with the gir1.2-gio-2.0-dev build dependency and a
+    recent enough gobject-introspection.
+  * Add ${gir:Depends}, ${gir:Provides} to libnm-dev
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 25 Apr 2024 19:26:12 +0200
+
+network-manager (1.46.0-1) unstable; urgency=medium
+
+  * New upstream version 1.46.0
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 22 Feb 2024 17:35:02 +0100
+
+network-manager (1.45.91-1) experimental; urgency=medium
+
+  * New upstream version 1.45.91 (1.46 rc2)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Switch Build-Depends on obsolete pkg-config to pkgconf
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Feb 2024 22:39:30 +0100
+
+network-manager (1.45.90-1) experimental; urgency=medium
+
+  * New upstream version 1.45.90 (1.46 rc1)
+  * Bump Build-Depends on libglib2.0-dev to (>= 2.42)
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 25 Jan 2024 10:32:43 +0100
+
+network-manager (1.44.2-7) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * d/control: Explicitly build-depend on gir1.2-girepository-2.0.
+    This is currently a virtual package provided by gir1.2-glib-2.0, but it
+    will need to be split into a separate package during the
+    GNOME 46/GLib 2.79.x cycle.
+    Making this dependency explicit will also help to keep track of which
+    packages will need coordination when PyGI switches from GIRepository 2.0
+    to GIRepository 3.0, which again is likely to happen during the GNOME 46
+    cycle. (Closes: #1059623)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 29 Dec 2023 19:38:14 +0100
+
+network-manager (1.44.2-6) unstable; urgency=medium
+
+  * Revert "Add versioned Breaks against isc-dhcp-client"
+    Having a Breaks against isc-dhcp-client can lead to unwanted package
+    removals by apt. As the default dhcp backend in network-manager has been
+    switched from dhclient to internal, the Breaks is not strictly necessary.
+    Users that have explicitly configured "dhcp=dhclient" are advised to
+    switch to the internal option (recommended) or temporarily disable the
+    sbin.dhclient AppArmor profile shipped by isc-dhcp-client until #1055067
+    is fixed. (Closes: #1056638)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 27 Nov 2023 07:45:49 +0100
+
+network-manager (1.44.2-5) unstable; urgency=medium
+
+  * Replace systemd Build-Depends with systemd-dev.
+    Only systemd.pc is required during build which is now shipped in
+    systemd-dev.
+  * Add versioned Breaks against isc-dhcp-client.
+    The AppArmor policy in isc-dhcp-client needs to be updated to account
+    for the move of the nm-dhcp-helper binary to /usr/libexec.
+    (Closes: #1056313)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 20 Nov 2023 23:02:41 +0100
+
+network-manager (1.44.2-4) unstable; urgency=medium
+
+  * Fix typo in latest NEWS entry
+  * Ship /etc/NetworkManager/VPN directory in network-manager package.
+    This will make an eventual cleanup easier once all VPN plugin packages
+    have moved their .name files to /usr/lib/NetworkManager/VPN.
+  * core: propagate the user-requested reason for act-request disconnection.
+    This avoids that deactivating a Wireguard VPN connection triggers an
+    error notification.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 18 Nov 2023 20:57:16 +0100
+
+network-manager (1.44.2-3) unstable; urgency=medium
+
+  * Move systemd services files and udev rules to /usr.
+    Add a corresponding versioned Build-Depends on debhelper (>= 13.11.6) to
+    ensure we have a recent enough dh_installsystemd.
+  * Install helper binaries into /usr/libexec (Closes: #1026388)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 20 Oct 2023 16:35:24 +0200
+
+network-manager (1.44.2-2) unstable; urgency=medium
+
+  * Stop executing ifupdown hook scripts on network state changes.
+    Many of those script are not meant to be run within a NetworkManager
+    context. Packages that would benefit from reacting on such network state
+    changes should install a native NetworkManager-dispatcher script.
+    The interface is documented in more detail in the
+    NetworkManager-dispatcher(8) man page.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Oct 2023 14:24:23 +0200
+
+network-manager (1.44.2-1) unstable; urgency=medium
+
+  * New upstream version 1.44.2
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 Oct 2023 12:09:39 +0200
+
+network-manager (1.44.0-1) unstable; urgency=medium
+
+  * New upstream version 1.44.0
+  * Explicitly set the modprobe path during configure
+  * Update symbols file for libnm0
+  * Rebase patches
+  * Remove obsolete maintscript code
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 09 Aug 2023 22:22:22 +0200
+
+network-manager (1.42.8-1) unstable; urgency=medium
+
+  * New upstream version 1.42.8
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 28 Jun 2023 15:22:30 +0200
+
+network-manager (1.42.6-2) unstable; urgency=medium
+
+  * Stop installing deprecated polkit pkla file.
+    The pkla backend has been superseded by the JS based backend.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 15 Jun 2023 23:08:24 +0200
+
+network-manager (1.42.6-1) unstable; urgency=medium
+
+  * New upstream version 1.42.6
+  * Rebase patches
+  * Use Build-Depends on polkitd and libpolkit-gobject-1-dev for polkit.its.
+    The obsolete policykit-1 package is going away. (Closes: #1025606)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Jun 2023 14:48:14 +0200
+
+# Older entries have been removed from this changelog.
+# To read the complete changelog use `apt changelog network-manager-tui`.

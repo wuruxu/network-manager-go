@@ -1,0 +1,13 @@
+Package: libnm0-dbgsym
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 3955
+Depends: libnm0 (= 1.58.1-1+crquickshare2)
+Section: debug
+Priority: optional
+Multi-Arch: same
+Description: debug symbols for libnm0
+Build-Ids: 3b0bd50b0a64d3e22a3456984d095b224923e566

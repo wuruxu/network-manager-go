@@ -1,0 +1,12 @@
+Package: network-manager-team-dbgsym
+Source: network-manager
+Version: 1.58.1-1+crquickshare2
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.alioth.debian.org>
+Installed-Size: 90
+Depends: network-manager-team (= 1.58.1-1+crquickshare2)
+Section: debug
+Priority: optional
+Description: debug symbols for network-manager-team
+Build-Ids: 7ada355b3c178485e765a6ac4904d8b00386259f
